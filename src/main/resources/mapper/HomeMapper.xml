@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.mapper.HouseMapper">
+    <!-- 건강보험 자격득실확인서  상세 조회 -->
+    <select id="getQuestion" resultType="HashMap">
+        SELECT
+             A.CONTENT Q_CONTENT
+            , B.CONTENT A_CONTENT
+            , B.NEXT_Q_UID NEXT_Q_UID
+            , B.NEXT_E_UID NEXT_E_UID
+        FROM QUESTION A
+        INNER JOIN ANSWER B
+            ON A.UID = B.QUESTION_UID
+        WHERE A.UID = #{qUid}
+        ORDER BY B.ORDER_NUM
+    </select>
+
+    <select id="getPreEquation" resultType="HashMap">
+        SELECT
+            UID
+            , LTV_MAX
+            , LTV_MIN
+            , LTV_CRITERIA
+            , DTI
+            , DSR
+            , LOAN_LIMIT
+        FROM EQUATION
+        WHERE UID = #{eUid}
+    </select>
+
+
+</mapper>
+
