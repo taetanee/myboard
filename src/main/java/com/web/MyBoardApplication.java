@@ -16,11 +16,11 @@ import javax.sql.DataSource;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "com.*" )
-public class WebApplication extends SpringBootServletInitializer {
+public class MyBoardApplication extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(WebApplication.class);
+        return builder.sources(MyBoardApplication.class);
     }
 
     @Bean
@@ -41,7 +41,7 @@ public class WebApplication extends SpringBootServletInitializer {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(WebApplication.class, args);
+        SpringApplication.run(MyBoardApplication.class, args);
     }
 
 }
