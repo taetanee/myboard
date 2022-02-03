@@ -26,6 +26,7 @@ public class DataGoAPI {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 //        try {
 //            _this.getMediumTermWeather();
 //        } catch (IOException e) {
