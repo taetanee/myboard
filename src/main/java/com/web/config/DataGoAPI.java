@@ -35,6 +35,7 @@ public class DataGoAPI {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+
     }
 
     private void getShortTermWeather(HashMap<String,String> _param) throws IOException {
