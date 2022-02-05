@@ -1,8 +1,11 @@
 package com.web.config;
 
+import org.springframework.stereotype.Component;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+@Component
 public class CommonUtil {
 
     public static void main(String args[]){
@@ -11,7 +14,7 @@ public class CommonUtil {
         System.out.println(result1);
     }
 
-    public static boolean isEmptyOrNull(String str) {
+    public boolean isEmptyOrNull(String str) {
         if (str != null && !str.isEmpty()) {
             return false;
         } else {
@@ -19,7 +22,11 @@ public class CommonUtil {
         }
     }
 
-    public static String getDate(String pattern){
+    public String getDate() {
+        return this.getDate("yyyyMMdd");
+    }
+
+    public String getDate(String pattern){
         SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         Calendar c1 = Calendar.getInstance();
         String strToday = sdf.format(c1.getTime());
