@@ -1,92 +1,20 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default_layout}">
 
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">
+<!-- index.html 고유 CSS 추가 -->
+<th:block layout:fragment="css">
+    <link rel="stylesheet" th:href="@{/css/page/home.css}" >
+</th:block>
 
-    <title>주택 대출 가능 금액 알아보기</title>
+<!-- index.html 고유 스크립트 추가 -->
+<th:block layout:fragment="script">
+    <script th:src="@{/js/page/home.js}"></script>
+</th:block>
 
-    <!-- Bootstrap core CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-    <!-- Custom styles for this template -->
-    <link href="cover.css" rel="stylesheet">
-</head>
-
-<body class="text-center">
-
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<!--<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>-->
-<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-<script src="common.js"></script>
-<script>
-    $( document ).ready(function() {
-        var params = {
-            q_uid      : getParameterByName("q_uid")
-        }
-
-        // ajax 통신
-        $.ajax({
-            type : "POST",
-            url : "/house/getQuestion",
-            data : params,
-            success : function(res){
-                $("#q_content").text(res[0].Q_CONTENT);
-
-                var answer_list = "";
-                for(var i=0;i<res.length;i++){
-                    var next_u_id = res[i]["NEXT_Q_UID"];
-                    var next_e_id = res[i]["NEXT_E_UID"];
-                    var a_content = res[i]["A_CONTENT"];
-                    if(next_e_id == "" || next_e_id == null){
-                        answer_list += "<a href='/index?q_uid="+next_u_id+"' class='btn btn-lg btn-secondary'>"+a_content+"</a>";
-                    } else {
-                        answer_list += "<a href='/pre_equation?e_uid="+next_e_id+"' class='btn btn-lg btn-secondary'>"+a_content+"</a>";
-                    }
-                    answer_list += "<BR><BR>";
-                }
-                $("#answer_list").html(answer_list);
-            },
-            error : function(XMLHttpRequest, textStatus, errorThrown){
-                alert("통신 실패.")
-            }
-        });
-    });
-</script>
-
-<div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
-    <header class="masthead mb-auto">
-        <div class="inner">
-            <nav class="nav nav-masthead justify-content-center">
-                <a class="nav-link active" href="/">Home</a>
-                <a class="nav-link" href="#">유의사항</a>
-                <a class="nav-link" href="#">1:1상담</a>
-            </nav>
-        </div>
-    </header>
-
-    <main role="main" class="inner cover">
-        <h1 class="cover-heading" id="q_content"></h1>
-        <BR><BR>
-        <p class="lead" id="answer_list">
-        </p>
-<!--        <p class="lead">도움말 : LTV는 무엇무엇입니다</p>-->
-    </main>
-
-    <footer class="mastfoot mt-auto">
-        <div class="inner">
-            <p>COPYRIGHT 농협은행 사내벤처 2기</p>
-        </div>
-    </footer>
+<div layout:fragment="content">
+    <h1>content</h1>
 </div>
-</body>
 </html>
