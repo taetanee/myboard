@@ -1,11 +1,42 @@
-
-/*
-* 이름으로 파라미터 추출
-* @param : 파라미터 키
-* @return : 파라미터 값
+/**
+ * Common 객체
  */
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
+var Common = {
+    ajax : function ( _param ) {
+
+        if(this.isNull(_param)){
+            this.error("파라미터 null");
+        }
+
+        if(this.isNull(_param["url"])){
+            this.error('url null');
+        }
+
+        var param = _param;
+
+        $.ajax({
+            url : param["url"]
+            , type : "POST"
+            , success : function (result) {
+
+            }
+            , error : function () {
+                alert("error 발생");
+            }
+        });
+    }
+    , isNull : function ( _param ) {
+        if( _param === undefined || _param === null) {
+            return true;
+        } else {
+            return true;
+        }
+    }
+    , isNotNull : function () {
+        return !this.isNull();
+    }
+    , error : function(msg){
+        alert(msg);
+        throw(msg);
+    }
+};
