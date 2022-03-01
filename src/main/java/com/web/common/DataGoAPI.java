@@ -1,5 +1,6 @@
 package com.web.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,9 @@ public class DataGoAPI {
     @Autowired
     private CommonUtil commonUtil;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public static void main(String[] args) {
         DataGoAPI _this = new DataGoAPI();
         try {
@@ -41,14 +45,17 @@ public class DataGoAPI {
 
     }
 
-    public String getShortTermWeather(HashMap<String, String> _param) throws IOException {
+    public HashMap<Object,Object> getShortTermWeather(HashMap<String, String> _param) throws IOException {
 
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
+        if( commonUtil.isEmptyOrNull(param.get("base_date")) ){
+            param.put("base_date",commonUtil.getDate());
+        }
 
         param.put("pageNo",URLEncoder.encode("1", "UTF-8"));  /*페이지번호*/
         param.put("numOfRows",URLEncoder.encode("1000", "UTF-8"));  /*한 페이지 결과 수*/
-        param.put("dataType",URLEncoder.encode("XML", "UTF-8")); /*요청자료형식(XML/JSON) Default: XML*/
-        param.put("base_date",URLEncoder.encode("20220206", "UTF-8")); /*‘21년 6월 28일 발표*/
+        param.put("dataType",URLEncoder.encode("JSON", "UTF-8")); /*요청자료형식(XML/JSON) Default: XML*/
+        param.put("base_date",URLEncoder.encode(param.get("base_date"), "UTF-8")); /*‘21년 6월 28일 발표*/
         param.put("base_time",URLEncoder.encode("0800", "UTF-8")); /*06시 발표(정시단위) */
         param.put("nx",URLEncoder.encode("55", "UTF-8")); /*예보지점의 X 좌표값*/
         param.put("ny",URLEncoder.encode("127", "UTF-8")); /*예보지점의 Y 좌표값*/
@@ -81,7 +88,8 @@ public class DataGoAPI {
         rd.close();
         conn.disconnect();
         System.out.println(sb.toString());
-        return sb.toString();
+        //objectMapper.readValue(sb.toString(), HashMap.class);
+        return objectMapper.readValue(sb.toString(), HashMap.class);
     }
 
     private void getMediumTermWeather(HashMap<String,String> _param) throws IOException {

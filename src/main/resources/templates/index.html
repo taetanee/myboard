@@ -4,23 +4,22 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{common/default_layout}">
 
-<!-- index.html 고유 CSS 추가 -->
-<!--<th:block layout:fragment="css">-->
-<!--    <link rel="stylesheet" th:href="@{/css/page/home.css}" >-->
-<!--</th:block>-->
-
-<!-- index.html 고유 스크립트 추가 -->
-<!--<th:block layout:fragment="script">-->
-<!--    <script th:src="@{/js/page/home.js}"></script>-->
-<!--</th:block>-->
-
 <th:block layout:fragment="script">
     <script>
-        var page = $.extend({}, Common);
+        $(document).ready(function (){
+            var page = $.extend({}, Common);
+
+            var param = {
+                url : "/getWeather"
+            }
+            var result = page.ajax(param);
+            $("#content").html(result);
+        });
+
     </script>
 </th:block>
 
-<div layout:fragment="content">
+<div layout:fragment="content" id="content">
     여기에 작업하면 됨
 </div>
 </html>
