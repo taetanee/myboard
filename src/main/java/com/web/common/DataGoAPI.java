@@ -1,6 +1,7 @@
-package com.web.config;
+package com.web.common;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -10,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 
+@Component
 public class DataGoAPI {
 
     private static String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
@@ -39,7 +41,7 @@ public class DataGoAPI {
 
     }
 
-    private void getShortTermWeather(HashMap<String,String> _param) throws IOException {
+    public String getShortTermWeather(HashMap<String, String> _param) throws IOException {
 
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
 
@@ -79,6 +81,7 @@ public class DataGoAPI {
         rd.close();
         conn.disconnect();
         System.out.println(sb.toString());
+        return sb.toString();
     }
 
     private void getMediumTermWeather(HashMap<String,String> _param) throws IOException {

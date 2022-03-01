@@ -1,4 +1,4 @@
-package com.web.config;
+package com.web.common;
 
 import org.springframework.stereotype.Component;
 

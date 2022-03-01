@@ -1,4 +1,4 @@
-package com.web.config;
+package com.web.common;
 
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
