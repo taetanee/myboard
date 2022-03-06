@@ -1,5 +1,6 @@
 package com.web.service;
 
+import com.web.common.CommonUtil;
 import com.web.common.DataGoAPI;
 import com.web.mapper.HouseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ public class ServiceImpl {
     @Autowired
     private DataGoAPI dataGoAPI;
 
+    @Autowired
+    private CommonUtil commonUtil;
+
     @Deprecated
     public List<HashMap<String,Object>> getQuestion(String qUid){
         return houseMapper.getQuestion(qUid);
@@ -36,6 +40,12 @@ public class ServiceImpl {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return result;
+    }
+
+    public HashMap<String,Object> getUuid(){
+        HashMap<String,Object> result = new HashMap<>();
+        result.put("result",commonUtil.getUUID());
         return result;
     }
 }

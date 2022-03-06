@@ -58,7 +58,7 @@ public class DataGoAPI {
 
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
         if( commonUtil.isEmptyOrNull(param.get("base_date")) ){
-            param.put("base_date",commonUtil.getDate());
+            param.put("base_date",commonUtil.getNowDate());
         }
 
         param.put("pageNo",URLEncoder.encode("1", "UTF-8"));  /*페이지번호*/
