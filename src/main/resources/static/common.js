@@ -2,7 +2,7 @@
  * Common 객체
  */
 var Common = {
-    ajax : function ( _param ) {
+    ajaxTransaction : function ( _param ) {
 
         if(this.isNull(_param)){
             this.error("param is null");
@@ -35,8 +35,8 @@ var Common = {
             return false;
         }
     }
-    , isNotNull : function () {
-        return !this.isNull();
+    , isNotNull : function ( _param ) {
+        return !this.isNull(_param);
     }
     , error : function(msg){
         alert(msg);

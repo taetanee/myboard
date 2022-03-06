@@ -21,6 +21,8 @@ public class DataGoAPI {
 
     private static String mediumTermWeatherURL = "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst";
 
+    private static String covidURL = "http://openapi.data.go.kr/openapi/service/rest/Covid19";
+
     @Autowired
     private CommonUtil commonUtil;
 
@@ -29,16 +31,23 @@ public class DataGoAPI {
 
     public static void main(String[] args) {
         DataGoAPI _this = new DataGoAPI();
-        try {
-            HashMap<String,String> param = new HashMap();
-            _this.getShortTermWeather(param);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            HashMap<String,String> param = new HashMap();
+//            _this.getShortTermWeat0her(param);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        try {
+//            HashMap<String,String> param = new HashMap();
+//            _this.getMediumTermWeather(param);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         try {
             HashMap<String,String> param = new HashMap();
-            _this.getMediumTermWeather(param);
+            _this.getCovid(param);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -108,6 +117,42 @@ public class DataGoAPI {
         urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") + "=" + param.get("dataType"));
         urlBuilder.append("&" + URLEncoder.encode("stnId","UTF-8") + "=" + param.get("stnId"));
         urlBuilder.append("&" + URLEncoder.encode("tmFc","UTF-8") + "=" + param.get("tmFc"));
+        URL url = new URL(urlBuilder.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-type", "application/json");
+        System.out.println("Response code: " + conn.getResponseCode());
+        BufferedReader rd;
+        if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        } else {
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+        }
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = rd.readLine()) != null) {
+            sb.append(line);
+        }
+        rd.close();
+        conn.disconnect();
+        System.out.println(sb.toString());
+    }
+
+    private void getCovid(HashMap<String,String> _param) throws IOException {
+        HashMap<String,String> param = (HashMap<String, String>) _param.clone();
+        param.put("pageNo",URLEncoder.encode("1", "UTF-8"));
+        param.put("numOfRows",URLEncoder.encode("10", "UTF-8"));
+        param.put("dataType",URLEncoder.encode("JSON", "UTF-8"));
+        param.put("startCreateDt",URLEncoder.encode("20200310", "UTF-8"));
+        param.put("endCreateDt",URLEncoder.encode("20200315", "UTF-8"));
+
+        StringBuilder urlBuilder = new StringBuilder(covidURL); /*URL*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "="+serviceKey); /*Service Key*/
+        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + param.get("pageNo"));
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + param.get("numOfRows"));
+        urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") + "=" + param.get("dataType"));
+        urlBuilder.append("&" + URLEncoder.encode("startCreateDt","UTF-8") + "=" + param.get("startCreateDt"));
+        urlBuilder.append("&" + URLEncoder.encode("endCreateDt","UTF-8") + "=" + param.get("endCreateDt"));
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

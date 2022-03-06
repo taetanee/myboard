@@ -4,22 +4,21 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{common/default_layout}">
 
-<th:block layout:fragment="script">
-    <script>
-        $(document).ready(function (){
-            var page = $.extend({}, Common);
-
-            var param = {
-                url : "/getWeather"
-            }
-            var result = page.ajax(param);
-            $("#content").html(result);
-        });
-
-    </script>
-</th:block>
-
 <div layout:fragment="content" id="content">
     여기에 작업하면 됨
 </div>
+
+
+<th:block layout:fragment="script">
+    <script>
+        var indexPage = $.extend({}, Common);
+
+        var param = {
+            url : "/getWeather"
+        }
+        var result = indexPage.ajaxTransaction(param);
+        $("#content").html(result);
+    </script>
+</th:block>
+
 </html>
