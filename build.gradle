@@ -38,6 +38,7 @@ dependencies {
     //devtools for hotswap
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    //json
     implementation 'org.json:json:20171018'
 
 }
