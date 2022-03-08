@@ -1,6 +1,8 @@
 package com.web.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
+import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +23,7 @@ public class DataGoAPI {
 
     private static String mediumTermWeatherURL = "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst";
 
-    private static String covidURL = "http://openapi.data.go.kr/openapi/service/rest/Covid19";
+    private static String covidURL = "http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19InfStateJson";
 
     @Autowired
     private CommonUtil commonUtil;
@@ -37,7 +39,7 @@ public class DataGoAPI {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-//
+
 //        try {
 //            HashMap<String,String> param = new HashMap();
 //            _this.getMediumTermWeather(param);
@@ -45,12 +47,12 @@ public class DataGoAPI {
 //            e.printStackTrace();
 //        }
 
-        try {
-            HashMap<String,String> param = new HashMap();
-            _this.getCovid(param);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            HashMap<String,String> param = new HashMap();
+//            _this.getCovid(param);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
@@ -138,7 +140,7 @@ public class DataGoAPI {
         System.out.println(sb.toString());
     }
 
-    private void getCovid(HashMap<String,String> _param) throws IOException {
+    public HashMap<Object,Object> getCovid(HashMap<String,String> _param) throws IOException {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
         param.put("pageNo",URLEncoder.encode("1", "UTF-8"));
         param.put("numOfRows",URLEncoder.encode("10", "UTF-8"));
@@ -150,7 +152,6 @@ public class DataGoAPI {
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "="+serviceKey); /*Service Key*/
         urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + param.get("pageNo"));
         urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + param.get("numOfRows"));
-        urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") + "=" + param.get("dataType"));
         urlBuilder.append("&" + URLEncoder.encode("startCreateDt","UTF-8") + "=" + param.get("startCreateDt"));
         urlBuilder.append("&" + URLEncoder.encode("endCreateDt","UTF-8") + "=" + param.get("endCreateDt"));
         URL url = new URL(urlBuilder.toString());
@@ -172,5 +173,7 @@ public class DataGoAPI {
         rd.close();
         conn.disconnect();
         System.out.println(sb.toString());
+        JSONObject json = XML.toJSONObject(sb.toString());
+        return objectMapper.readValue(json.toString(), HashMap.class);
     }
 }

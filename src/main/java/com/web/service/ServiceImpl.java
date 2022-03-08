@@ -13,24 +13,26 @@ import java.util.List;
 @Service
 public class ServiceImpl {
 
-    @Deprecated
-    @Autowired
-    private HouseMapper houseMapper;
-
     @Autowired
     private DataGoAPI dataGoAPI;
 
     @Autowired
     private CommonUtil commonUtil;
 
-    @Deprecated
-    public List<HashMap<String,Object>> getQuestion(String qUid){
-        return houseMapper.getQuestion(qUid);
+    public HashMap<String,Object> getUuid(){
+        HashMap<String,Object> result = new HashMap<>();
+        result.put("result",commonUtil.getUUID());
+        return result;
     }
 
-    @Deprecated
-    public HashMap<String,Object> getPreEquation(String eUid){
-        return houseMapper.getPreEquation(eUid);
+    public HashMap<Object,Object> getCovid(HashMap<String,String> param){
+        HashMap<Object,Object> result = new HashMap<>();
+        try {
+            result = dataGoAPI.getCovid(param);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     public HashMap<Object,Object> getWeather(HashMap<String,String> param){
@@ -40,12 +42,6 @@ public class ServiceImpl {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return result;
-    }
-
-    public HashMap<String,Object> getUuid(){
-        HashMap<String,Object> result = new HashMap<>();
-        result.put("result",commonUtil.getUUID());
         return result;
     }
 }

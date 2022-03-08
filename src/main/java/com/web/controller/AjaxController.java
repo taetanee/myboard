@@ -18,12 +18,7 @@ public class AjaxController {
     private ServiceImpl service;
 
 
-    @RequestMapping("/getWeather")
-    public HashMap<Object,Object> getWeather(HashMap<String,String> param){
-        HashMap<Object,Object> result = service.getWeather(param);
-        return result;
-    }
-
+    //uuid 가져오기
     @RequestMapping("/getUuid")
     public ResponseEntity<?> getUuid(){
         CommonRes response = new CommonRes();
@@ -32,22 +27,22 @@ public class AjaxController {
         return ResponseEntity.ok(response);
     }
 
-//    @Deprecated
-//    @RequestMapping("/getQuestion")
-//    public List<HashMap<String,Object>> getQuestion(String q_uid){
-//        if(q_uid == null || q_uid == ""){
-//            q_uid = "Q0";
-//        }
-//        List<HashMap<String,Object>> result = service.getQuestion(q_uid);
-//        return result;
-//    }
-//
-//    @Deprecated
-//    @RequestMapping("/getPreEquation")
-//    public HashMap<String,Object> getPreEquation(String e_uid){
-//        HashMap<String,Object> result = service.getPreEquation(e_uid);
-//        return result;
-//    }
+    //날씨 가져오기
+    @RequestMapping("/getWeather")
+    public ResponseEntity<?> getWeather(HashMap<String,String> param){
+        CommonRes response = new CommonRes();
+        HashMap<Object,Object> result = service.getWeather(param);
+        response.setResult(result);
+        return ResponseEntity.ok(response);
+    }
 
+    //코로나 감염자 가져오기
+    @RequestMapping("/getCovid")
+    public ResponseEntity<?> getCovid(HashMap<String,String> param){
+        CommonRes response = new CommonRes();
+        HashMap<Object,Object> result = service.getCovid(param);
+        response.setResult(result);
+        return ResponseEntity.ok(response);
+    }
 
 }

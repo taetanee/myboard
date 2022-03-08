@@ -25,14 +25,4 @@ public class ViewController {
     public Object page01(Model model, HttpServletRequest request) {
         return "index";
     }
-
-    @RequestMapping(value = "pre_equation")
-    public Object page02(Model model, HttpServletRequest request) {
-        String eUid = request.getParameter("e_uid");
-        HashMap<String,Object> result = service.getPreEquation(eUid);
-        if("".equals(result.get("LTV_MIN")) && "".equals(result.get("DTI")) && "".equals(result.get("DSR"))){
-            return "stop";
-        }
-        return "pre_equation";
-    }
 }
