@@ -140,7 +140,7 @@ public class DataGoAPI {
         System.out.println(sb.toString());
     }
 
-    public HashMap<Object,Object> getCovid(HashMap<String,String> _param) throws IOException {
+    public HashMap<String,Object> getCovid(HashMap<String,String> _param) throws IOException {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
         param.put("pageNo",URLEncoder.encode("1", "UTF-8"));
         param.put("numOfRows",URLEncoder.encode("10", "UTF-8"));

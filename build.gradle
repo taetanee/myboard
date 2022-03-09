@@ -41,6 +41,9 @@ dependencies {
     //json
     implementation 'org.json:json:20171018'
 
+    //mongo
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-mongodb', version: '2.5.10'
+
 }
 
 test {

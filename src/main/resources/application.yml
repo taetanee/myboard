@@ -8,3 +8,10 @@ spring :
   devtools:
     restart:
       enabled: false
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database : myboard
+      username : admin
+      #password :

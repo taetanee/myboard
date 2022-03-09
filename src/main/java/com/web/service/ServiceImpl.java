@@ -25,8 +25,8 @@ public class ServiceImpl {
         return result;
     }
 
-    public HashMap<Object,Object> getCovid(HashMap<String,String> param){
-        HashMap<Object,Object> result = new HashMap<>();
+    public HashMap<String,Object> getCovid(HashMap<String,String> param){
+        HashMap<String,Object> result = new HashMap<>();
         try {
             result = dataGoAPI.getCovid(param);
         } catch (IOException e) {
