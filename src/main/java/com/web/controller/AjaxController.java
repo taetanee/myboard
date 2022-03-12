@@ -38,12 +38,7 @@ public class AjaxController {
     //set 코로나
     @RequestMapping("/getCovid")
     public ResponseEntity<?> getCovid(HashMap<String,String> param){
-        CommonResVO response = new CommonResVO();
-        HashMap<String,Object> result = service.getCovid(param);
-        response.setResult(result);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.getCovid(param));
     }
-
-
 
 }

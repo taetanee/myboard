@@ -5,12 +5,16 @@ import com.web.common.DataGoAPI;
 import com.web.vo.CommonResVO;
 import com.web.vo.CovidVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class ServiceImpl {
@@ -30,13 +34,17 @@ public class ServiceImpl {
         return result;
     }
 
-    public HashMap<String,Object> getCovid(HashMap<String,String> param){
-        HashMap<String,Object> result = new HashMap<>();
-        try {
-            result = dataGoAPI.getCovid(param);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public CommonResVO getCovid(HashMap<String,String> param){
+        CommonResVO result = new CommonResVO();
+//        List<CovidVO> covidList = mongoTemplate.find(
+//                new Query().with(Sort.by(Sort.Direction.DESC, "id"))
+//                , CovidVO.class);
+
+        List<CovidVO> covidList = mongoTemplate.find(
+                new Query().limit(1).with(Sort.by(Sort.Direction.DESC, "_id"))
+                , CovidVO.class);
+
+        result.setResult(covidList);
         return result;
     }
 
