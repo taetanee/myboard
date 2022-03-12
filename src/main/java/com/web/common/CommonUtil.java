@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Component
@@ -11,10 +12,10 @@ public class CommonUtil {
 
     public static void main(String args[]){
         CommonUtil _this = new CommonUtil();
-//        String result1 = _this.getNowDate("yyyyMMdd");
-//        System.out.println(result1);
 
-        System.out.println(_this.getUUID());
+        HashMap<String,String> param = new HashMap();
+        param.put("xx","");
+        System.out.println(_this.getValueIfNull(param.get("xx"),"isNull"));
     }
 
     public boolean isEmptyOrNull(String str) {
@@ -23,6 +24,17 @@ public class CommonUtil {
         } else {
             return true;
         }
+    }
+
+    //TODO : 일단 String 자료형으로만 했는데, 추후에 다른 자료형 필요할 수 있음
+    public String getValueIfNull(String targetObject, String nullObject){
+        String result = "";
+        if(this.isEmptyOrNull(targetObject)){
+            result = nullObject;
+        } else {
+            result = targetObject;
+        }
+        return result;
     }
 
     public String getNowDate() {

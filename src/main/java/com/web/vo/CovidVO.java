@@ -3,15 +3,14 @@ package com.web.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Date;
 
 @Document(collection = "covid")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Covid {
+public class CovidVO {
     private double accDefRate;
     private int accExamCnt;
     private String stateTime;
@@ -20,5 +19,7 @@ public class Covid {
     private int stateDt;
     private String updateDt;
     private String createDt;
+
+    @Id
     private int seq;
 }

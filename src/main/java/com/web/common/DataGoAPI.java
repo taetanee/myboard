@@ -142,18 +142,30 @@ public class DataGoAPI {
 
     public HashMap<String,Object> getCovid(HashMap<String,String> _param) throws IOException {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
-        param.put("pageNo",URLEncoder.encode("1", "UTF-8"));
-        param.put("numOfRows",URLEncoder.encode("10", "UTF-8"));
-        param.put("dataType",URLEncoder.encode("JSON", "UTF-8"));
-        param.put("startCreateDt",URLEncoder.encode("20200310", "UTF-8"));
-        param.put("endCreateDt",URLEncoder.encode("20200315", "UTF-8"));
+
+        if(commonUtil.isEmptyOrNull(param.get("startCreateDt"))){
+            System.out.println("startCreateDt isEmptyOrNull");
+            //TODO exception을 던지거나 중단처리해야함
+        }
+
+        if(commonUtil.isEmptyOrNull(param.get("endCreateDt"))){
+            System.out.println("endCreateDt isEmptyOrNull");
+            //TODO exception을 던지거나 중단처리해야함
+        }
+
+        HashMap<String,String> paramAPI = new HashMap();
+        paramAPI.put("pageNo",URLEncoder.encode(commonUtil.getValueIfNull(param.get("pageNo"),"1"), "UTF-8"));
+        paramAPI.put("numOfRows",URLEncoder.encode(commonUtil.getValueIfNull(param.get("numOfRows"),"10"), "UTF-8"));
+        paramAPI.put("dataType",URLEncoder.encode("JSON", "UTF-8"));
+        paramAPI.put("startCreateDt",URLEncoder.encode(commonUtil.getValueIfNull(param.get("startCreateDt"),"20200101"), "UTF-8"));
+        paramAPI.put("endCreateDt",URLEncoder.encode(commonUtil.getValueIfNull(param.get("endCreateDt"),"20200131"), "UTF-8"));
 
         StringBuilder urlBuilder = new StringBuilder(covidURL); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "="+serviceKey); /*Service Key*/
-        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + param.get("pageNo"));
-        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + param.get("numOfRows"));
-        urlBuilder.append("&" + URLEncoder.encode("startCreateDt","UTF-8") + "=" + param.get("startCreateDt"));
-        urlBuilder.append("&" + URLEncoder.encode("endCreateDt","UTF-8") + "=" + param.get("endCreateDt"));
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "="+serviceKey);
+        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + paramAPI.get("pageNo"));
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + paramAPI.get("numOfRows"));
+        urlBuilder.append("&" + URLEncoder.encode("startCreateDt","UTF-8") + "=" + paramAPI.get("startCreateDt"));
+        urlBuilder.append("&" + URLEncoder.encode("endCreateDt","UTF-8") + "=" + paramAPI.get("endCreateDt"));
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
