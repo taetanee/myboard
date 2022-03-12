@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.common.CommonRes;
+import com.web.vo.CommonResVO;
 import com.web.service.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class AjaxController {
     //get uuid
     @RequestMapping("/getUuid")
     public ResponseEntity<?> getUuid(){
-        CommonRes response = new CommonRes();
+        CommonResVO response = new CommonResVO();
         HashMap<String,Object> result = service.getUuid();
         response.setResult(result);
         return ResponseEntity.ok(response);
@@ -29,17 +29,17 @@ public class AjaxController {
     //get 날씨
     @RequestMapping("/getWeather")
     public ResponseEntity<?> getWeather(HashMap<String,String> param){
-        CommonRes response = new CommonRes();
+        CommonResVO response = new CommonResVO();
         HashMap<Object,Object> result = service.getWeather(param);
         response.setResult(result);
         return ResponseEntity.ok(response);
     }
 
     //set 코로나
-    @RequestMapping("/setCovid")
-    public ResponseEntity<?> setCovid(HashMap<String,String> param){
-        CommonRes response = new CommonRes();
-        HashMap<String,Object> result = service.setCovid(param);
+    @RequestMapping("/getCovid")
+    public ResponseEntity<?> getCovid(HashMap<String,String> param){
+        CommonResVO response = new CommonResVO();
+        HashMap<String,Object> result = service.getCovid(param);
         response.setResult(result);
         return ResponseEntity.ok(response);
     }
