@@ -18,6 +18,10 @@ public class CommonUtil {
         System.out.println(_this.getValueIfNull(param.get("xx"),"isNull"));
     }
 
+    /**
+     * String이 null이거나 빈 값일대 true를 반환하는 함수
+     * @param str 체크하려는 값
+     */
     public boolean isEmptyOrNull(String str) {
         if (str != null && !str.isEmpty()) {
             return false;
@@ -26,8 +30,13 @@ public class CommonUtil {
         }
     }
 
-    //TODO : 일단 String 자료형으로만 했는데, 추후에 다른 자료형 필요할 수 있음
+    /**
+     * String이 null이거나 빈 값일대 두번째 인자로 반환하는 함수
+     * @param targetObject 체크하려는 값
+     * @param nullObject null일때 반환하는 값
+     */
     public String getValueIfNull(String targetObject, String nullObject){
+        //TODO : 일단 String 자료형으로만 했는데, 추후에 다른 자료형 필요할 수 있음
         String result = "";
         if(this.isEmptyOrNull(targetObject)){
             result = nullObject;
@@ -37,10 +46,17 @@ public class CommonUtil {
         return result;
     }
 
+    /**
+     * 현재시간을 yyyyMMdd로 반환하는 함수
+     */
     public String getNowDate() {
         return this.getNowDate("yyyyMMdd");
     }
 
+    /**
+     * 현재시간을 첫번째 인자의 패턴으로 반환하는 함수
+     * @param pattern 날짜 형식 패턴
+     */
     public String getNowDate(String pattern){
         SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         Calendar c1 = Calendar.getInstance();
@@ -48,11 +64,17 @@ public class CommonUtil {
         return strToday;
     }
 
+    /**
+     * UUID 생성 함수(default)
+     */
     public String getUUID(){
         final int length = 8;
         return this.getUUID(length);
     }
 
+    /**
+     * UUID 생성 함수(파라미터에 의해 생성)
+     */
     public String getUUID(int length){
         UUID result = UUID.randomUUID();
         return result.toString().substring(0, length);
