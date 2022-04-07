@@ -1,13 +1,12 @@
 package com.web.dev;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /*
 없는 숫자 더하기
 https://programmers.co.kr/learn/courses/30/lessons/86051
  */
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
 public class Solution86051 {
 
     public static void main(String args[]){
