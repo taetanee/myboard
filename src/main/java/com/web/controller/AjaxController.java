@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -39,6 +40,15 @@ public class AjaxController {
     @RequestMapping("/getCovid")
     public ResponseEntity<?> getCovid(HashMap<String,String> param){
         return ResponseEntity.ok(service.getCovid(param));
+    }
+
+    //get 테스트 ( Spring Test를 위한 )
+    @RequestMapping("/getTest")
+    public Map getTest(HashMap<String,String> param){
+        Map result = new HashMap<String, Object>();
+        result.put("id", "taetanee");
+        result.put("name", "테타니");
+        return result;
     }
 
 }
