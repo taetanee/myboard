@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### private coding test ###
+/src/main/java/com/web/unpublic/
