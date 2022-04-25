@@ -121,4 +121,11 @@ public class ServiceImpl {
         }
         return result;
     }
+
+
+    public CovidVO unitTest(){
+        CovidVO result = new CovidVO();
+        result.setUpdateDt("A");
+        return result;
+    }
 }
