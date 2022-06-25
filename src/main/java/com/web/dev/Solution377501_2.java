@@ -1,7 +1,7 @@
 package com.web.dev;
 
 /*
-[스켈 체크 테스트 Level 1] 내적 구하기 ( 그냥 1차원 배열의 곱의 합임 )
+[스킬 체크 테스트 Level 1] 내적 구하기 ( 그냥 1차원 배열의 곱의 합임 )
 https://programmers.co.kr/skill_checks/377501?challenge_id=6771
  */
 
