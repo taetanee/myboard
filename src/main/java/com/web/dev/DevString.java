@@ -1,6 +1,6 @@
 package com.web.dev;
 
-public class Temp {
+public class DevString {
 
     //됨 (이 두가지를 제외하고 나머지는 안됨)
     //public static void main(String args[]){
