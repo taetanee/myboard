@@ -8,6 +8,7 @@ spring :
   devtools:
     restart:
       enabled: false
+
   data:
     mongodb:
       host: 127.0.0.1
