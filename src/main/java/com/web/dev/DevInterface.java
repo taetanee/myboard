@@ -3,19 +3,19 @@ package com.web.dev;
 public class DevInterface {
 
     public static void main(String[] args) {
-        C1 c1 = new C1();
+        DI1Class c1 = new DI1Class();
         System.out.println(c1.f1());
     }
 
 }
 
-class C1 implements I1{
+class DI1Class implements DI2Interface {
     @Override
     public int f1() {
         return 0;
     }
 }
 
-interface I1{
+interface DI2Interface {
     int f1();
 }
