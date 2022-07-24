@@ -3,7 +3,7 @@ package com.web.dev;
 
 /*
 타겟넘버
-https://programmers.co.kr/learn/courses/30/lessons/xxxxx
+https://school.programmers.co.kr/learn/courses/30/lessons/43165
 (https://hyojun.tistory.com/entry/Programmers-%ED%83%80%EA%B2%9F-%EB%84%98%EB%B2%84-Java?category=980310)
  */
 
