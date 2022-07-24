@@ -9,13 +9,13 @@ public class DevInterface {
 
 }
 
-class DI1Class implements DI2Interface {
+class DI1Class implements DI1Interface {
     @Override
     public int f1() {
         return 0;
     }
 }
 
-interface DI2Interface {
+interface DI1Interface {
     int f1();
 }
