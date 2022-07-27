@@ -1,5 +1,9 @@
 package com.web.dev;
 
+/*
+https://bcp0109.tistory.com/14
+*/
+
 public class DevDFS {
     public static void main(String[] args) {
         int n = 3;
@@ -31,8 +35,8 @@ public class DevDFS {
 
     // 배열 출력
     static void print(int[] arr, int r) {
-        for (int i = 0; i < r; i++)
+        for (int i = 0; i < r; i++) {
             System.out.print(arr[i] + " ");
-        System.out.println();
+        }
     }
 }
