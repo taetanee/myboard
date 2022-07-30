@@ -3,6 +3,7 @@ package com.web.dev;
 /*
 소수 찾기
 https://school.programmers.co.kr/learn/courses/30/lessons/42839?language=java
+참고해서 풀었음 : https://tmdrl5779.tistory.com/213
  */
 
 import java.util.HashSet;
@@ -10,48 +11,35 @@ import java.util.Set;
 
 public class Solution42839 {
 
-    static Set<String> result = new HashSet<>();
+    static Set<Integer> set = new HashSet<>();
 
     public static void main(String[] args) {
-        //Solution42839 s1 = new Solution42839();
-        //s1.solution("17");
-
-        Solution42839 s2 = new Solution42839();
-        s2.solution("1234");
-
-        for(String value : result) {
-            System.out.println(value);
-        }
+        Solution42839 s1 = new Solution42839();
+        s1.solution("123");
     }
 
     public int solution(String numbers) {
         int answer = 0;
-        int length = numbers.length();
-        char[] output = new char[length];
-        boolean[] visited = new boolean[length];
-        dfs(numbers,output, visited, 0);
+
+        dfs(numbers, new boolean[numbers.length()], 0, new StringBuilder());
+
+        for (Integer num : set){
+            System.out.println(num);
+        }
+
         return answer;
     }
 
-    public void dfs(String s, char[] output, boolean[] visited, int depth){
-
-        int length = s.length();
-
-        if(length == depth){
-            result.add(String.valueOf(output));
-            return;
-        }
-
-        for(int i=0;i<length;i++){
-            if (visited[i] == false) {
+    public void dfs(String numbers, boolean[] visited, int depth, StringBuilder s){
+        for(int i = 0; i < visited.length; i++){
+            if(visited[i] == false) {
                 visited[i] = true;
-                output[depth] = s.charAt(i);
-                dfs(s, output, visited, depth + 1);
+                s.append(numbers.charAt(i));
+                set.add(Integer.parseInt(s.toString()));
+                dfs(numbers, visited, depth+1, s);
+                s.deleteCharAt(s.length()-1);
                 visited[i] = false;
             }
         }
-
     }
-
-
 }
