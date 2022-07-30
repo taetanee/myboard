@@ -4,7 +4,7 @@ package com.web.dev;
 https://bcp0109.tistory.com/14
 */
 
-public class DevDFS {
+public class DevDFSInt {
     public static void main(String[] args) {
         int n = 3;
         int[] arr = {1, 2, 3};
