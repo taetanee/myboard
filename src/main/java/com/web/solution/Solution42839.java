@@ -1,4 +1,4 @@
-package com.web.dev;
+package com.web.solution;
 
 /*
 소수 찾기

@@ -1,4 +1,4 @@
-package com.web.dev;
+package com.web.solution;
 
 /*
 JadeonCase 문자열 만들기

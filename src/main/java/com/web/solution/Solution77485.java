@@ -1,4 +1,4 @@
-package com.web.dev;
+package com.web.solution;
 
 /*
 문제제에에목

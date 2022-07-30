@@ -1,3 +1,5 @@
+package com.web.solution;
+
 public class Solution77484 {
 
     public static void main(String[] args) {
