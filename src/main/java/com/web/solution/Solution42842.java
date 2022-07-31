@@ -11,14 +11,19 @@ https://school.programmers.co.kr/learn/courses/30/lessons/42842?language=java
 
 public class Solution42842 {
     public static void main(String[] args) {
-        Solution42842 s1 = new Solution42842();
-        s1.solution(10, 2);
+        //Solution42842 s1 = new Solution42842();
+        //s1.solution(10, 2);
+
+        Solution42842 s2 = new Solution42842();
+        s2.solution(8, 1);
+
+        //Solution42842 s3 = new Solution42842();
+        //s3.solution(24, 24);
     }
 
 
     public int[] solution(int brown, int yellow) {
-
-        int[] answer = {};
+        int[] answer = new int[2];
 
         Set<ArrayList> set = new HashSet<>();
         int temp = brown + yellow;
@@ -30,6 +35,20 @@ public class Solution42842 {
                 set.add(tempArrayList);
             }
         }
+
+        for(ArrayList arr : set){
+            int x = (int) arr.get(1);
+            int y = (int) arr.get(0);
+            if( x > y ){
+                continue;
+            }
+            if((x-2)*(y-2)==yellow){
+                System.out.print(x + "," + y);
+                answer[1] = x;
+                answer[0] = y;
+            }
+        }
+
 
         return answer;
     }
