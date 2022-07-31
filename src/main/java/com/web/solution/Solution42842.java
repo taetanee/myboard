@@ -7,6 +7,7 @@ import java.util.Set;
 /*
 카펫
 https://school.programmers.co.kr/learn/courses/30/lessons/42842?language=java
+https://dev-ku.tistory.com/283 참고해서 풀었음
  */
 
 public class Solution42842 {
