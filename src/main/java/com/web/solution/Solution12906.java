@@ -20,17 +20,17 @@ public class Solution12906 {
 
     public int[] solution(int []arr) {
 
-        Stack<Integer> queue = new Stack();
+        Stack<Integer> stack = new Stack();
         for(int i=0;i<arr.length;i++){
             if( i == 0 ){
-                queue.add(arr[i]);
-            } else if( queue.peek() != arr[i] ){
-                queue.add(arr[i]);
+                stack.add(arr[i]);
+            } else if( stack.peek() != arr[i] ){
+                stack.add(arr[i]);
             }
         }
 
-        int[] answer = new int[queue.size()];
-        Iterator<Integer> itr = queue.iterator();
+        int[] answer = new int[stack.size()];
+        Iterator<Integer> itr = stack.iterator();
         int i = 0;
         while (itr.hasNext()) {
             answer[i] = itr.next();
