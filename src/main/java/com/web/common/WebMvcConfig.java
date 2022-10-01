@@ -3,7 +3,6 @@ package com.web.common;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
 import org.springframework.web.servlet.config.annotation.*;
 
 import java.util.Arrays;
@@ -13,7 +12,7 @@ import java.util.Arrays;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
-    private GlobalInterceptor globalInterceptor;
+    private CommonInterceptor commonInterceptor;
 
     //로그인 체크 페턴
     private String[] includedUrlPatterns = {
@@ -28,7 +27,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(globalInterceptor)
+        registry.addInterceptor(commonInterceptor)
                 .addPathPatterns(Arrays.asList(includedUrlPatterns))
                 .excludePathPatterns(Arrays.asList(excludedUrlPatterns))
         ;

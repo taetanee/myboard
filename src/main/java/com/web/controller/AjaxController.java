@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.vo.CommonResVO;
+import com.web.common.CommonResVO;
 import com.web.service.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +49,12 @@ public class AjaxController {
         result.put("id", "taetanee");
         result.put("name", "테타니");
         return result;
+    }
+
+    @RequestMapping("/thisIsError")
+    public void thisIsError(){
+        HashMap x = new HashMap();
+        x.get("xxx").toString();
     }
 
 }

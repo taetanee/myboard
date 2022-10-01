@@ -2,12 +2,11 @@ package com.web.service;
 
 import com.web.common.CommonUtil;
 import com.web.common.DataGoAPI;
-import com.web.vo.CommonResVO;
+import com.web.common.CommonResVO;
 import com.web.vo.CovidVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
@@ -103,7 +102,7 @@ public class ServiceImpl {
             }
         } catch (Exception e){
             e.printStackTrace();
-            result.setResultCode("-999");
+            result.setResultCode(500);
             result.setResultMsg("에러발생");
             return result;
         }
