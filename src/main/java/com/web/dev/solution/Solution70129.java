@@ -1,4 +1,4 @@
-package com.web.solution;
+package com.web.dev.solution;
 
 /*
 이진 변환 반복하기

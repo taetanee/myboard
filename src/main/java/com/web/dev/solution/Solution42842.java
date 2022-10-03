@@ -1,4 +1,4 @@
-package com.web.solution;
+package com.web.dev.solution;
 
 import java.util.ArrayList;
 import java.util.HashSet;
