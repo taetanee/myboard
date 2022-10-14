@@ -22,7 +22,7 @@ public class CommonUtil {
      * String이 null이거나 빈 값일대 true를 반환하는 함수
      * @param str 체크하려는 값
      */
-    public boolean isEmptyOrNull(String str) {
+    static public boolean isEmptyOrNull(String str) {
         if (str != null && !str.isEmpty()) {
             return false;
         } else {

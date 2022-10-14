@@ -1,8 +1,6 @@
 package com.web.service;
 
-import com.web.common.CommonUtil;
-import com.web.common.DataGoAPI;
-import com.web.common.CommonResVO;
+import com.web.common.*;
 import com.web.vo.CovidVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -50,38 +48,46 @@ public class ServiceImpl {
     public CommonResVO setCovid(HashMap<String,String> _param){
         CommonResVO result = new CommonResVO();
 
-        try{
-            HashMap<String,String> param = (HashMap<String, String>) _param.clone();
-            HashMap<String,Object> covidResult = dataGoAPI.getCovid(param);
+        try {
+            HashMap<String, String> param = (HashMap<String, String>) _param.clone();
+            HashMap<String, Object> covidResult = dataGoAPI.getCovid(param);
 
-            //[시작]TODO 추후에 소스 개선
-            HashMap<String,Object> temp1;
-            temp1 = ((HashMap<String, Object>) covidResult.get("response"));
-            HashMap<String,Object> temp2;
-            temp2 = ((HashMap<String, Object>) temp1.get("body"));
-            HashMap<String,Object> temp3;
-            temp3 = (HashMap<String, Object>) temp2.get("items");
-            ArrayList temp4;
-            temp4 = (ArrayList) temp3.get("item");
-            //[종료]TODO 추후에 소스 개선
+            //[시작] depth1Response
+            HashMap<String, Object> depth1Response = (HashMap<String, Object>) covidResult.get("response");
+            //[종료] depth1Response
 
-            for(int i=0; i<temp4.size(); i++){
-                HashMap rawData = (HashMap) temp4.get(i);
+            //[시작] depth2Body
+            if (depth1Response.get("body") == null || "".equals(depth1Response.get("body"))) {
+                throw new CommonException(CommonError.COVID_RESULT_ERROR);
+            }
+            HashMap<String, Object> depth2Body = (HashMap<String, Object>) depth1Response.get("body");
+            //[종료] depth2Body
+
+            //[시작] depth3Items
+            HashMap<String, Object> depth3Items = (HashMap<String, Object>) depth2Body.get("items");
+            //[종료] depth3Items
+
+            //[시작] depth4Item
+            ArrayList depth4Item = (ArrayList) depth3Items.get("item");
+            //[종료] depth4Item
+
+            for (int i = 0; i < depth4Item.size(); i++) {
+                HashMap rawData = (HashMap) depth4Item.get(i);
                 double accDefRate = 0;
                 int accExamCnt = 0;
-                if(rawData.get("accDefRate") == null){
+                if (rawData.get("accDefRate") == null) {
                     accDefRate = 0;
-                } else if(rawData.get("accDefRate") instanceof Double){
+                } else if (rawData.get("accDefRate") instanceof Double) {
                     accDefRate = (double) rawData.get("accDefRate");
-                } else if(rawData.get("accDefRate") instanceof Integer){
+                } else if (rawData.get("accDefRate") instanceof Integer) {
                     accDefRate = (int) rawData.get("accDefRate");
                 } else {
                     System.out.println("[경고] accDefRate가 예측된 자료형이 아님");
                 }
 
-                if(rawData.get("accExamCnt") == null){
+                if (rawData.get("accExamCnt") == null) {
                     accExamCnt = 0;
-                } else if(rawData.get("accExamCnt") instanceof Integer){
+                } else if (rawData.get("accExamCnt") instanceof Integer) {
                     accExamCnt = (int) rawData.get("accExamCnt");
                 } else {
                     System.out.println("[경고] accExamCnt가 예측된 자료형이 아님");
@@ -100,11 +106,21 @@ public class ServiceImpl {
                         )
                 );
             }
-        } catch (Exception e){
+
+        } catch (CommonException e) {
+            e.printStackTrace();
+            for (String key : _param.keySet()) {
+                System.out.println("key : " + key + "/" + "value : " + _param.get(key));
+            }
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            for (String key : _param.keySet()) {
+                System.out.println("key : " + key + "/" + "value : " + _param.get(key));
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             result.setResultCode(500);
             result.setResultMsg("에러발생");
-            return result;
         }
 
         return result;
