@@ -1,4 +1,4 @@
-package com.web.solution;
+package com.web.dev.solution;
 
 /*
 약수의 개수와 덧셈

@@ -1,4 +1,4 @@
-package com.web.solution;
+package com.web.dev.solution;
 
 /*
 신규 아이디 추천

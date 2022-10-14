@@ -1,4 +1,4 @@
-package com.web.solution;
+package com.web.dev.solution;
 
 /*
 3진법 뒤집기
