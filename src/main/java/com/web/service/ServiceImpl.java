@@ -1,6 +1,7 @@
 package com.web.service;
 
 import com.web.common.*;
+import com.web.mapper.TestMapper;
 import com.web.vo.CovidVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -21,6 +22,9 @@ public class ServiceImpl {
 
     @Autowired
     private CommonUtil commonUtil;
+
+    @Autowired
+    private TestMapper testMapper;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -142,5 +146,9 @@ public class ServiceImpl {
         CovidVO result = new CovidVO();
         result.setUpdateDt("A");
         return result;
+    }
+
+    public HashMap<String,String> checkHealth() {
+        return testMapper.checkHealth();
     }
 }

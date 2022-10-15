@@ -57,4 +57,10 @@ public class AjaxController {
         x.get("xxx").toString();
     }
 
+    //checkHealth
+    @RequestMapping("/checkHealth")
+    public ResponseEntity<?> checkHealth(HashMap<String,String> param){
+        return ResponseEntity.ok(service.checkHealth());
+    }
+
 }
