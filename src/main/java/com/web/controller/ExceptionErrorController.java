@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-public class ErrorController {
+public class ExceptionErrorController {
     @ExceptionHandler({	Exception.class })
     public ResponseEntity<?> exception(final Exception ex) {
         CommonResVO commonResVO = new CommonResVO();
