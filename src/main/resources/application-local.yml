@@ -32,3 +32,6 @@ spring :
       database : myboard
       username : admin
       #password :
+
+logging:
+  config: classpath:log4j2-local.yml

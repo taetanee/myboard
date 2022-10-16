@@ -2,6 +2,7 @@ package com.web.controller;
 
 import com.web.common.CommonResVO;
 import com.web.service.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/")
+@Slf4j
 public class AjaxController {
 
     @Autowired
@@ -52,8 +54,9 @@ public class AjaxController {
     }
 
     @RequestMapping("/thisIsError")
-    public void thisIsError(){
+    public void thisIsError() {
         HashMap x = new HashMap();
+        log.error("thisIsError");
         x.get("xxx").toString();
     }
 
