@@ -5,7 +5,7 @@
       layout:decorate="~{common/default_layout}">
 
 <div layout:fragment="content" id="content">
-    여기에 작업하면 됨
+    index
 </div>
 
 
@@ -16,6 +16,7 @@
         var param = {
             //url : "/getCovid"
             url : "/thisIsError"
+            //url : "/checkHealth"
         }
         var result = indexPage.ajaxTransaction(param);
         $("#content").html(result);

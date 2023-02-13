@@ -15,14 +15,13 @@ public class ViewController {
     @Autowired
     private ServiceImpl service;
 
-    @RequestMapping("dev")
-    public Object dev()
-    {
-        return "dev";
+    @RequestMapping(value = {"","index"})
+    public Object index(Model model, HttpServletRequest request) {
+        return "index";
     }
 
-    @RequestMapping(value = {"","index"})
-    public Object page01(Model model, HttpServletRequest request) {
-        return "index";
+    @RequestMapping("dev/devThis")
+    public Object devThis(Model model, HttpServletRequest request) {
+        return "dev/devThis";
     }
 }

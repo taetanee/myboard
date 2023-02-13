@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/default_layout}">
+
+<div layout:fragment="content" id="content">
+    해당 페이지에 HTML내용은 없습니다. 개발자도구를 실행하여 콘솔창을 확인해주세요
+</div>
+
+
+<th:block layout:fragment="script">
+    <script>
+
+        var object1 = {
+            level1_a : function () {
+                console.log(this); //object1 전체를 의미 (출력 결과 : {level1_b: {…}, level1_a: ƒ})
+            },
+            level1_b : {
+                level2_a : function () {
+                    console.log(this); //object1.property2를 의미 (출력 결과 : {level2_b: {…}, level2_a: ƒ})
+                },
+                level2_b : {
+                    level3_a : function () {
+                        console.log(this); //object1.property2.property2_2를 의미 (출력 결과 : {level3_a: ƒ, level3_b: ƒ})
+                    },
+                    level3_b : function () {
+
+                    }
+                }
+            }
+        }
+        object1.level1_a();
+        object1.level1_b.level2_a();
+        object1.level1_b.level2_b.level3_a();
+
+
+        var object2 = {
+            tags: [1, 2, 3, 4],
+            showTags() {
+                this.tags.forEach(function(tag) {
+                    console.log(tag);
+                    console.log(this); // window 출력
+                });
+            }
+        }
+        object2.showTags();
+
+    </script>
+</th:block>
+
+</html>
