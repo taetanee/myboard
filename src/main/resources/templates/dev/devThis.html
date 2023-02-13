@@ -38,13 +38,34 @@
         var object2 = {
             tags: [1, 2, 3, 4],
             showTags() {
-                this.tags.forEach(function(tag) {
-                    console.log(tag);
-                    console.log(this); // window 출력
+                this.tags.forEach(function() {
+                    console.log(this); // window를 의미
                 });
             }
         }
         object2.showTags();
+
+
+        var object3 = {
+            tags: [1, 2, 3, 4],
+            showTags() {
+                this.tags.forEach(function() {
+                    console.log(this); // object3를 의미
+                }, this); // 여기는 일반 함수 바깥, fn 객체를 참조할 수 있다.
+            }
+        }
+        object3.showTags();
+
+
+        var object4 = {
+            tags: [1, 2, 3, 4],
+            showTags() {
+                this.tags.forEach((tag) => {
+                    console.log(this); // object4를 의미
+                });
+            }
+        }
+        object4.showTags();
 
     </script>
 </th:block>
