@@ -71,7 +71,7 @@ public class ExtendedSmtpManager extends AbstractManager
     /** Create instance. Internal use, for public creation use getSMTPManager() */
     protected ExtendedSmtpManager(final String name, final Session session, final MimeMessage message,
                           final FactoryData data) {
-        super(null, name);		// TODO? set loggerContext?
+        super(null, name);
         this.session = session;
         this.message = message;
         this.data = data;
