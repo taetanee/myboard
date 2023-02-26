@@ -10,7 +10,7 @@ public class CommonFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        //TODO : 필터 전처리 작업필요할 시 넣자
+        //필요시 작업
         chain.doFilter(request, response);
     }
 

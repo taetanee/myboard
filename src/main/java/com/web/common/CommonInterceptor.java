@@ -11,14 +11,13 @@ import java.util.List;
 public class CommonInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //TODO : 필요시 작업
+        //필요시 작업
         return true;
     }
 
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        //TODO : 필요시 작업
-        System.out.println("afterCompletion");
+        //필요시 작업
     }
 }

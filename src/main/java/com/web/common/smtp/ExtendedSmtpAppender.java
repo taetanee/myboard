@@ -178,7 +178,7 @@ public final class ExtendedSmtpAppender extends AbstractAppender
     public boolean isFiltered(final LogEvent event) {
         final boolean filtered = super.isFiltered(event);
         if (filtered) {
-            // TODO using garbage free logging the buffered event will be reused/overwritten,
+            // To do using garbage free logging the buffered event will be reused/overwritten,
             // so do a clone() when not using AsyncAppender (how to recognize?).
             // BUT: this appender is - in real world - always used with AsyncAppender,
             // so do not do the copy twice.

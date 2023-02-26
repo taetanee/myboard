@@ -141,7 +141,7 @@ public class ExtendedSmtpManager extends AbstractManager
     @Override
     protected boolean releaseSub(long timeout, TimeUnit timeUnit) {
         summarySender.interrupt();
-        try {		// TODO? use timeout??
+        try {
             summarySender.join(2000);		// if thread is currently sending emails, give it some time to finish
         } catch (InterruptedException e) {
             ; // ignore
