@@ -53,11 +53,15 @@ public class AjaxController {
         return result;
     }
 
-    @RequestMapping("/thisIsError")
-    public void thisIsError() {
+    @RequestMapping("/errorTest")
+    public void errorTest() {
         HashMap x = new HashMap();
-        log.error("thisIsError");
-        x.get("xxx").toString();
+        log.error("errorTest");
+    }
+
+    @RequestMapping("/exceptionTest")
+    public void exceptionTest() throws Exception {
+        throw new Exception("endCreateDt isEmptyOrNull");
     }
 
     //checkHealth

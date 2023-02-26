@@ -1,6 +1,7 @@
 package com.web.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 @Component
+@Slf4j
 public class DataGoAPI {
 
     private static String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
@@ -140,17 +142,15 @@ public class DataGoAPI {
         System.out.println(sb.toString());
     }
 
-    public HashMap<String,Object> getCovid(HashMap<String,String> _param) throws IOException {
+    public HashMap<String,Object> getCovid(HashMap<String,String> _param) throws IOException, Exception {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
 
         if(commonUtil.isEmptyOrNull(param.get("startCreateDt"))){
-            System.out.println("startCreateDt isEmptyOrNull");
-            //TODO exception을 던지거나 중단처리해야함
+            throw new Exception("startCreateDt isEmptyOrNull");
         }
 
         if(commonUtil.isEmptyOrNull(param.get("endCreateDt"))){
-            System.out.println("endCreateDt isEmptyOrNull");
-            //TODO exception을 던지거나 중단처리해야함
+            throw new Exception("endCreateDt isEmptyOrNull");
         }
 
         HashMap<String,String> paramAPI = new HashMap();
