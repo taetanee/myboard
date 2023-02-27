@@ -38,3 +38,8 @@ out/
 
 ### logs ###
 /logs
+
+
+### logs ###
+/src/main/resources/application-local.yml
+/src/main/resources/log4j2-local.yml
