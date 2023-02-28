@@ -27,6 +27,9 @@ public class ErrorController implements org.springframework.boot.web.servlet.err
 		} else if(errorCode == HttpStatus.NOT_FOUND.value()){
 			mav.addObject("errorMsg", HttpStatus.NOT_FOUND.getReasonPhrase());
 			mav.addObject("errorCode", HttpStatus.NOT_FOUND.value());
+		} else if(errorCode == HttpStatus.INTERNAL_SERVER_ERROR.value()){
+			mav.addObject("errorMsg", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+			mav.addObject("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.value());
 		} else {
 			mav.addObject("errorMsg", "Unknown Error");
 			mav.addObject("errorCode", "?");
