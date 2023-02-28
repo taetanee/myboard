@@ -24,4 +24,9 @@ public class ViewController {
     public Object devThis(Model model, HttpServletRequest request) {
         return "dev/devThis";
     }
+
+    @RequestMapping("dev/exceptionTest")
+    public Object exceptionTest(Model model, HttpServletRequest request) {
+        return "dev/exceptionTest";
+    }
 }

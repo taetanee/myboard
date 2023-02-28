@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/default_layout}">
+
+<div layout:fragment="content" id="content">
+  해당 페이지에 HTML내용은 없습니다.
+</div>
+
+
+<th:block layout:fragment="script">
+  <script>
+    var indexPage = $.extend({}, Common);
+
+    var param = {
+      url : "/exceptionTest"
+    }
+    var result = indexPage.ajaxTransaction(param);
+    $("#content").html(result);
+  </script>
+</th:block>
+
+</html>

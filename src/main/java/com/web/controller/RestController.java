@@ -51,16 +51,9 @@ public class RestController {
         result.put("name", "테타니");
         return result;
     }
-
-    @RequestMapping("/errorTest")
-    public void errorTest() {
-        HashMap x = new HashMap();
-        log.error("errorTest");
-    }
-
     @RequestMapping("/exceptionTest")
     public void exceptionTest() throws Exception {
-        throw new Exception("endCreateDt isEmptyOrNull");
+        throw new Exception("exceptionTest");
     }
 
     //checkHealth
