@@ -42,3 +42,5 @@ out/
 ### yml ###
 /src/main/resources/application-local.yml
 /src/main/resources/log4j2-local.yml
+/src/main/resources/application-prod.yml
+/src/main/resources/log4j2-prod.yml
