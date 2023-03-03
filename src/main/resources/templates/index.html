@@ -19,8 +19,15 @@
             //url : "/errorTest"
             url : "/exceptionTest"
         }
-        var result = indexPage.ajaxTransaction(param);
-        $("#content").html(result);
+        // var result = indexPage.ajaxTransaction(param);
+        // $("#content").html(result);
+
+        indexPage.ajaxTransaction(param)
+            .then(function (result) {
+                $("#content").html(result);
+            }, function (error) {
+                alert('오류발생');
+            });
     </script>
 </th:block>
 
