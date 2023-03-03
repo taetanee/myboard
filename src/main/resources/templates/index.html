@@ -14,20 +14,20 @@
         var indexPage = $.extend({}, Common);
 
         var param = {
-            //url : "/getCovid"
-            //url : "/checkHealth"
-            //url : "/errorTest"
             url : "/exceptionTest"
         }
-        // var result = indexPage.ajaxTransaction(param);
-        // $("#content").html(result);
 
-        indexPage.ajaxTransaction(param)
-            .then(function (result) {
-                $("#content").html(result);
-            }, function (error) {
-                alert('오류발생');
-            });
+        indexPage.getData = function () {
+            indexPage.ajaxTransaction(param)
+                .then(function (result) {
+                    $("#content").html(result);
+                }, function (error) {
+                    alert('오류발생');
+                });
+        }
+
+        indexPage.getData();
+
     </script>
 </th:block>
 
