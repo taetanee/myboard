@@ -86,7 +86,6 @@ public class DataGoAPI {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
-        System.out.println("Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -100,7 +99,7 @@ public class DataGoAPI {
         }
         rd.close();
         conn.disconnect();
-        System.out.println(sb.toString());
+        log.info(sb.toString());
         //objectMapper.readValue(sb.toString(), HashMap.class);
         return objectMapper.readValue(sb.toString(), HashMap.class);
     }
@@ -125,7 +124,6 @@ public class DataGoAPI {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
-        System.out.println("Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -139,7 +137,7 @@ public class DataGoAPI {
         }
         rd.close();
         conn.disconnect();
-        System.out.println(sb.toString());
+        log.info(sb.toString());
     }
 
     public HashMap<String,Object> getCovid(HashMap<String,String> _param) throws IOException, Exception {
@@ -170,7 +168,6 @@ public class DataGoAPI {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
-        System.out.println("Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -184,7 +181,7 @@ public class DataGoAPI {
         }
         rd.close();
         conn.disconnect();
-        System.out.println(sb.toString());
+        log.info(sb.toString());
         JSONObject json = XML.toJSONObject(sb.toString());
         return objectMapper.readValue(json.toString(), HashMap.class);
     }

@@ -3,6 +3,7 @@ package com.web.service;
 import com.web.common.*;
 import com.web.mapper.TestMapper;
 import com.web.vo.CovidVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ServiceImpl {
 
     @Autowired
@@ -42,14 +44,14 @@ public class ServiceImpl {
 //                , CovidVO.class);
 
         List<CovidVO> covidList = mongoTemplate.find(
-                new Query().limit(1).with(Sort.by(Sort.Direction.DESC, "_id"))
+                new Query().limit(999999999).with(Sort.by(Sort.Direction.DESC, "_id"))
                 , CovidVO.class);
 
         result.setResult(covidList);
         return result;
     }
 
-    public CommonResVO setCovid(HashMap<String,String> _param){
+    public CommonResVO setCovid(HashMap<String,String> _param) throws Exception {
         CommonResVO result = new CommonResVO();
 
         try {
@@ -62,7 +64,7 @@ public class ServiceImpl {
 
             //[시작] depth2Body
             if (depth1Response.get("body") == null || "".equals(depth1Response.get("body"))) {
-                throw new CommonException(CommonError.COVID_RESULT_ERROR);
+                throw new CommonException(CommonError.COVID_RESULT_WARN);
             }
             HashMap<String, Object> depth2Body = (HashMap<String, Object>) depth1Response.get("body");
             //[종료] depth2Body
@@ -86,7 +88,7 @@ public class ServiceImpl {
                 } else if (rawData.get("accDefRate") instanceof Integer) {
                     accDefRate = (int) rawData.get("accDefRate");
                 } else {
-                    System.out.println("[경고] accDefRate가 예측된 자료형이 아님");
+                    log.warn("accDefRate가 예측된 자료형이 아님");
                 }
 
                 if (rawData.get("accExamCnt") == null) {
@@ -94,7 +96,7 @@ public class ServiceImpl {
                 } else if (rawData.get("accExamCnt") instanceof Integer) {
                     accExamCnt = (int) rawData.get("accExamCnt");
                 } else {
-                    System.out.println("[경고] accExamCnt가 예측된 자료형이 아님");
+                    log.warn("accExamCnt가 예측된 자료형이 아님");
                 }
 
                 mongoTemplate.save(new CovidVO(
@@ -112,19 +114,17 @@ public class ServiceImpl {
             }
 
         } catch (CommonException e) {
-            e.printStackTrace();
+            log.warn("[CommonException발생] ERR_CODE : "+ e.getErrCode());
             for (String key : _param.keySet()) {
                 System.out.println("key : " + key + "/" + "value : " + _param.get(key));
             }
         } catch (ClassCastException e) {
-            e.printStackTrace();
+            log.warn("[ClassCastException] ERR_CODE : "+ e);
             for (String key : _param.keySet()) {
                 System.out.println("key : " + key + "/" + "value : " + _param.get(key));
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            result.setResultCode(500);
-            result.setResultMsg("에러발생");
+            throw new Exception(e);
         }
 
         return result;

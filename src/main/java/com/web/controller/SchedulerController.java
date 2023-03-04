@@ -46,7 +46,7 @@ public class SchedulerController {
     }
 
     //@Scheduled(cron = "* * * * * *")
-    private boolean setCovid(){
+    private boolean setCovid() throws Exception{
         HashMap<String,String> paramCovid = new HashMap();
 
         StringBuffer startCreateDt = new StringBuffer();
@@ -73,7 +73,7 @@ public class SchedulerController {
                     paramCovid.put("endCreateDt", "20220231");
                 }
 
-                System.out.println(startCreateDt+"~"+endCreateDt);
+                log.info("[startCreateDt] : " + startCreateDt + "[endCreateDt] : " + endCreateDt);
                 service.setCovid(paramCovid);
 
                 startCreateDt.delete(0, startCreateDt.length());
