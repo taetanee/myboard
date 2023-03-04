@@ -140,7 +140,7 @@ public class DataGoAPI {
         log.info(sb.toString());
     }
 
-    public HashMap<String,Object> getCovid(HashMap<String,String> _param) throws IOException, Exception {
+    public HashMap<String,Object> callGetCovid(HashMap<String,String> _param) throws IOException, Exception {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
 
         if(commonUtil.isEmptyOrNull(param.get("startCreateDt"))){

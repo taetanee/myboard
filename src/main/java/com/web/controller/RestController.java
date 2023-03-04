@@ -29,10 +29,10 @@ public class RestController {
     }
 
     //get 날씨
-    @RequestMapping("/getWeather")
-    public ResponseEntity<?> getWeather(HashMap<String,String> param){
+    @RequestMapping("/getShortTermWeather")
+    public ResponseEntity<?> getShortTermWeather(HashMap<String,String> param){
         CommonResVO response = new CommonResVO();
-        HashMap<Object,Object> result = service.getWeather(param);
+        HashMap<Object,Object> result = service.getShortTermWeather(param);
         response.setResult(result);
         return ResponseEntity.ok(response);
     }
@@ -40,7 +40,7 @@ public class RestController {
     //set 코로나
     @RequestMapping("/getCovid")
     public ResponseEntity<?> getCovid(HashMap<String,String> param){
-        return ResponseEntity.ok(service.getCovid(param));
+        return ResponseEntity.ok(service.getCovidMongoDB(param));
     }
 
     //get 테스트 ( Spring Test를 위한 )

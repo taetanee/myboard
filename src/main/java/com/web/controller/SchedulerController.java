@@ -6,9 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
-import java.net.URLEncoder;
 import java.util.HashMap;
 
 @Slf4j
@@ -74,7 +72,7 @@ public class SchedulerController {
                 }
 
                 log.info("[startCreateDt] : " + startCreateDt + "[endCreateDt] : " + endCreateDt);
-                service.setCovid(paramCovid);
+                service.setCovidMongoDB(paramCovid);
 
                 startCreateDt.delete(0, startCreateDt.length());
                 endCreateDt.delete(0, endCreateDt.length());

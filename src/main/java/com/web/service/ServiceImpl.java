@@ -37,7 +37,7 @@ public class ServiceImpl {
         return result;
     }
 
-    public CommonResVO getCovid(HashMap<String,String> param){
+    public CommonResVO getCovidMongoDB(HashMap<String,String> param){
         CommonResVO result = new CommonResVO();
 //        List<CovidVO> covidList = mongoTemplate.find(
 //                new Query().with(Sort.by(Sort.Direction.DESC, "id"))
@@ -51,12 +51,12 @@ public class ServiceImpl {
         return result;
     }
 
-    public CommonResVO setCovid(HashMap<String,String> _param) throws Exception {
+    public CommonResVO setCovidMongoDB(HashMap<String,String> _param) throws Exception {
         CommonResVO result = new CommonResVO();
 
         try {
             HashMap<String, String> param = (HashMap<String, String>) _param.clone();
-            HashMap<String, Object> covidResult = dataGoAPI.getCovid(param);
+            HashMap<String, Object> covidResult = dataGoAPI.callGetCovid(param);
 
             //[시작] depth1Response
             HashMap<String, Object> depth1Response = (HashMap<String, Object>) covidResult.get("response");
@@ -131,7 +131,7 @@ public class ServiceImpl {
     }
 
 
-    public HashMap<Object,Object> getWeather(HashMap<String,String> param){
+    public HashMap<Object,Object> getShortTermWeather(HashMap<String,String> param){
         HashMap<Object,Object> result = new HashMap<>();
         try {
             result = dataGoAPI.getShortTermWeather(param);
