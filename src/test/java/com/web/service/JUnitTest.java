@@ -1,22 +1,20 @@
 package com.web.service;
 
 import com.web.dto.CovidDto;
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import org.junit.Before;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.closeTo;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 
 @ExtendWith(MockitoExtension.class)
-public class CommonServiceUnitTest {
+public class JUnitTest {
 
     @InjectMocks
     private CommonService commonService;

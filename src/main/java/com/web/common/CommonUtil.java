@@ -36,7 +36,6 @@ public class CommonUtil {
      * @param nullObject null일때 반환하는 값
      */
     public String getValueIfNull(String targetObject, String nullObject){
-        //TODO : 일단 String 자료형으로만 했는데, 추후에 다른 자료형 필요할 수 있음
         String result = "";
         if(this.isEmptyOrNull(targetObject)){
             result = nullObject;

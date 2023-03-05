@@ -16,6 +16,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 import static org.hamcrest.core.Is.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @AutoConfigureMockMvc
 @Slf4j
-class CommonServiceTest {
+class SpringBootIntegrationTest {
 
     @Value("${testId}")
     private String testId;
@@ -56,17 +57,12 @@ class CommonServiceTest {
                 .build();
     }
 
-    //[시작] TODO 오류나서 주석 처리 했음
-    //@Test
-    //[종료] TODO 오류나서 주석 처리 했음
-    void getCovid() throws Exception {
-        System.out.println("##### Properties 테스트 #####");
-        System.out.println("testId : " + testId);
-        System.out.println("testName : " + testName);
+    @Test
+    void springBootTest() throws Exception {
 
         /******** START : MOC MVC test **********/
         System.out.println("******** START : MOC MVC test **********");
-        mvc.perform(get("/getTest"))
+        mvc.perform(post("/springBootTest"))
                 .andExpect(status().isOk())
                 //.andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
