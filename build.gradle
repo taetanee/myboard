@@ -33,38 +33,51 @@ dependencies {
         exclude module: 'junit'
     }
 
-    //thymeleaf
+    //[시작] thymeleaf
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+    //[종료] thymeleaf
 
-    //lombok
+    //[시작] lombok
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.projectlombok:lombok:1.18.8'
+    //[종료] lombok
 
-    //devtools for hotswap
+    //[시작] devtools for hotswap
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    //[종료] devtools for hotswap
 
-    //json
+    //[시작] json
     implementation 'org.json:json:20171018'
+    //[종료] json
 
-    //mongo
+    //[시작] mongo
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-mongodb', version: '2.5.10'
+    //[종료] mongo
 
-    //junit
+    //[시작] junit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.5.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
     testImplementation 'junit:junit:4.12'
+    //[종료] junit
 
-    //javax mail
+    //[시작] javax mail
     implementation('com.sun.mail:javax.mail:1.6.2')
+    //[종료] javax mail
 
-    //log4j2
+    //[시작] log4j2
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-log4j2', version: '2.5.2'
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.3'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.3'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.0'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.0'
+    //[종료] log4j2
+
+    //[시작] swagger
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.8.0'
+    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.8.0'
+    //[종료] swagger
 
 }
 
