@@ -56,7 +56,9 @@ class CommonServiceTest {
                 .build();
     }
 
+    //[시작] TODO 오류나서 주석 처리 했음
     //@Test
+    //[종료] TODO 오류나서 주석 처리 했음
     void getCovid() throws Exception {
         System.out.println("##### Properties 테스트 #####");
         System.out.println("testId : " + testId);
