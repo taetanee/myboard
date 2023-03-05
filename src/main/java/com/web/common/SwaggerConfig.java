@@ -1,8 +1,6 @@
 package com.web.common;
 
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -20,7 +18,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-@SuppressWarnings("unchecked")
 public class SwaggerConfig extends WebMvcConfigurationSupport {
 
 	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
