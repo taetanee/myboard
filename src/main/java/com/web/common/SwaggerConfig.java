@@ -18,14 +18,19 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger.web.UiConfigurationBuilder;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-@Configuration	// 스프링 실행시 설정파일 읽어드리기 위한 어노테이션
-@EnableSwagger2	// Swagger2를 사용하겠다는 어노테이션
-@SuppressWarnings("unchecked")	// warning밑줄 제거를 위한 태그
+@Configuration
+@EnableSwagger2
+@SuppressWarnings("unchecked")
 public class SwaggerConfig extends WebMvcConfigurationSupport {
+
+	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
+			"classpath:/META-INF/resources/",
+			"classpath:/static/"};
 
 	//리소스 핸들러 설
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
 		registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
 		registry.addResourceHandler("swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
 		registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
