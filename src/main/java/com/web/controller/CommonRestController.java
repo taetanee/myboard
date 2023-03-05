@@ -1,7 +1,7 @@
 package com.web.controller;
 
 import com.web.common.CommonResVO;
-import com.web.service.ServiceImpl;
+import com.web.service.CommonService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,37 +13,21 @@ import java.util.Map;
 @org.springframework.web.bind.annotation.RestController
 @RequestMapping("/")
 @Slf4j
-public class RestController {
+public class CommonRestController {
 
     @Autowired
-    private ServiceImpl service;
+    private CommonService commonService;
 
 
-    //get uuid
     @RequestMapping("/getUuid")
     public ResponseEntity<?> getUuid(){
         CommonResVO response = new CommonResVO();
-        HashMap<String,Object> result = service.getUuid();
+        HashMap<String,Object> result = commonService.getUuid();
         response.setResult(result);
         return ResponseEntity.ok(response);
     }
 
-    //get 날씨
-    @RequestMapping("/getShortTermWeather")
-    public ResponseEntity<?> getShortTermWeather(HashMap<String,String> param){
-        CommonResVO response = new CommonResVO();
-        HashMap<Object,Object> result = service.getShortTermWeather(param);
-        response.setResult(result);
-        return ResponseEntity.ok(response);
-    }
 
-    //set 코로나
-    @RequestMapping("/getCovid")
-    public ResponseEntity<?> getCovid(HashMap<String,String> param){
-        return ResponseEntity.ok(service.getCovidMongoDB(param));
-    }
-
-    //get 테스트 ( Spring Test를 위한 )
     @RequestMapping("/getTest")
     public Map getTest(HashMap<String,String> param){
         Map result = new HashMap<String, Object>();
@@ -51,15 +35,17 @@ public class RestController {
         result.put("name", "테타니");
         return result;
     }
+
+
     @RequestMapping("/exceptionTest")
     public void exceptionTest() throws Exception {
         throw new Exception("exceptionTest");
     }
 
-    //checkHealth
+
     @RequestMapping("/checkHealth")
     public ResponseEntity<?> checkHealth(HashMap<String,String> param){
-        return ResponseEntity.ok(service.checkHealth());
+        return ResponseEntity.ok(commonService.checkHealth());
     }
 
 }

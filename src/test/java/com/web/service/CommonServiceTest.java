@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @AutoConfigureMockMvc
 @Slf4j
-class ServiceImplTest {
+class CommonServiceTest {
 
     @Value("${testId}")
     private String testId;
@@ -45,7 +43,7 @@ class ServiceImplTest {
     //private TestRestTemplate restTemplate;
 
     @Autowired
-    private ServiceImpl serviceImpl;
+    private CommonService commonService;
 
     @Autowired
     private WebApplicationContext ctx;

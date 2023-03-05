@@ -1,6 +1,6 @@
 package com.web.service;
 
-import com.web.vo.CovidVO;
+import com.web.dto.CovidDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,10 +16,10 @@ import static org.junit.Assert.assertThat;
 
 
 @ExtendWith(MockitoExtension.class)
-public class ServiceImplUnitTest {
+public class CommonServiceUnitTest {
 
     @InjectMocks
-    private ServiceImpl serviceImpl;
+    private CommonService commonService;
 
     @Before
     public void setup(){
@@ -34,7 +34,7 @@ public class ServiceImplUnitTest {
 
             //when
             double x2 = 3.5;
-            CovidVO y2 = serviceImpl.unitTest();
+            CovidDto y2 = commonService.junitTest();
 
             //then
             assertThat(x1, closeTo(x2,0.3));
@@ -53,7 +53,7 @@ public class ServiceImplUnitTest {
 
             //when
             double x2 = 3.5;
-            CovidVO y2 = serviceImpl.unitTest();
+            CovidDto y2 = commonService.junitTest();
 
             //then
             assertThat(x1, closeTo(x2,0.1)); //이 경우에는 error 발생
@@ -70,7 +70,7 @@ public class ServiceImplUnitTest {
 
             //when
             double x2 = 3.5;
-            CovidVO y2 = serviceImpl.unitTest();
+            CovidDto y2 = commonService.junitTest();
 
             //then
             assertThat(y2.getUpdateDt(), is("B")); //이 경우에는 error 발생

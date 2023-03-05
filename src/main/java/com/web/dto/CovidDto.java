@@ -1,4 +1,4 @@
-package com.web.vo;
+package com.web.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CovidVO {
+public class CovidDto {
     private double accDefRate;
     private int accExamCnt;
     private String stateTime;

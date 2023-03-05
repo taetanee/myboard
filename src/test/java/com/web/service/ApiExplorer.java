@@ -1,6 +1,5 @@
 package com.web.service;
 
-import com.web.vo.CovidVO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +26,7 @@ public class ApiExplorer {
     private static String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
 
     @InjectMocks
-    private ServiceImpl serviceImpl;
+    private CommonService commonService;
 
     @Before
     public void setup(){
