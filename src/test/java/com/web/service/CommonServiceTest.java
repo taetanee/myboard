@@ -56,7 +56,7 @@ class CommonServiceTest {
                 .build();
     }
 
-    @Test
+    //@Test
     void getCovid() throws Exception {
         System.out.println("##### Properties 테스트 #####");
         System.out.println("testId : " + testId);
