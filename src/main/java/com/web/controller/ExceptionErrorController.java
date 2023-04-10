@@ -25,8 +25,9 @@ public class ExceptionErrorController {
             commonResVO.setResultMsg(CommonError.BAD_REQUEST_MSG);
         } else if(ex instanceof CommonException){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            commonResVO.setResultCode(CommonError.BAD_REQUEST);
-            commonResVO.setResultMsg(CommonError.BAD_REQUEST_MSG);
+            CommonException commonException = (CommonException) ex;
+            commonResVO.setResultCode(commonException.getErrCode());
+            commonResVO.setResultMsg(CommonException.getMsg(commonException.getErrCode()));
         } else {
             log.error("[error] URI : " + request.getRequestURI() + " / exception e = " , ex);
             commonResVO.setResultCode(CommonError.INTERNAL_SERVER_ERROR);

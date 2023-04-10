@@ -58,7 +58,7 @@ public class DataGoAPI {
 
     }
 
-    public HashMap<Object,Object> getShortTermWeather(HashMap<String, String> _param) throws IOException {
+    public HashMap<Object,Object> getShortTermWeather(HashMap<String, String> _param) throws Exception {
 
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
         if( commonUtil.isEmptyOrNull(param.get("base_date")) ){

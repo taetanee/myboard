@@ -1,5 +1,6 @@
 package com.web.controller;
 
+import com.web.common.CommonException;
 import com.web.common.CommonResVO;
 import com.web.service.CommonService;
 import com.web.service.WeatherService;
@@ -24,9 +25,17 @@ public class WeatherRestController {
 
 
 	@PostMapping("/getShortTermWeather")
-	public ResponseEntity<?> getShortTermWeather(HashMap<String,String> param){
+	public ResponseEntity<?> getShortTermWeather(HashMap<String,String> param) throws Exception {
 		CommonResVO response = new CommonResVO();
-		HashMap<Object,Object> result = weatherService.getShortTermWeather(param);
+		HashMap<Object,Object> result = null;
+		try {
+			result = weatherService.getShortTermWeather(param);
+		} catch (CommonException e) {
+			throw new CommonException(e);
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+
 		response.setResult(result);
 		return ResponseEntity.ok(response);
 	}
