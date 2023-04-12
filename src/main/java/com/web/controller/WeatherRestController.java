@@ -16,7 +16,7 @@ import java.util.HashMap;
 
 @Api(tags="날씨 컨트롤러")
 @RestController
-@RequestMapping("/")
+@RequestMapping("/weather")
 @Slf4j
 public class WeatherRestController {
 

@@ -17,7 +17,6 @@ public class WeatherService {
 
 
 	public HashMap<Object,Object> getShortTermWeather(HashMap<String,String> param) throws Exception{
-
 		HashMap<Object,Object> result = new HashMap<>();
 		result = dataGoAPI.getShortTermWeather(param);
 		return result;
