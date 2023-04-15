@@ -1,7 +1,6 @@
 package com.web.service;
 
 
-import com.web.common.CommonError;
 import com.web.common.CommonException;
 import com.web.common.CommonResVO;
 import com.web.common.DataGoAPI;
@@ -86,7 +85,7 @@ public class CovidService {
 
 		try {
 			HashMap<String, String> param = (HashMap<String, String>) _param.clone();
-			HashMap<String, Object> covidResult = dataGoAPI.callGetCovid(param);
+			HashMap<String, Object> covidResult = dataGoAPI.callAPICovid(param);
 
 			ArrayList depth4Item = dataGoAPI.getItem(covidResult);
 

@@ -21,7 +21,7 @@ import java.util.HashMap;
 public class DataGoAPI {
 
     private static final String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
-    private static final String shortTermWeatherURL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
+    private static final String ShortWeatherURL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
     private static final String mediumTermWeatherURL = "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst";
     private static final String covidURL = "http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19InfStateJson";
     private static final String stockURL = "https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService";
@@ -58,7 +58,7 @@ public class DataGoAPI {
 
     }
 
-    public HashMap<String,Object> getShortTermWeather(HashMap<String, Object> _param) throws Exception {
+    public HashMap<String,Object> callAPIShortWeather(HashMap<String, Object> _param) throws Exception {
 
         HashMap<String, String> param = (HashMap<String, String>) _param.clone();
         if (commonUtil.isEmptyOrNull(param.get("base_date"))) {
@@ -77,7 +77,7 @@ public class DataGoAPI {
         param.put("nx",URLEncoder.encode("55", "UTF-8")); /*예보지점의 X 좌표값*/
         param.put("ny",URLEncoder.encode("127", "UTF-8")); /*예보지점의 Y 좌표값*/
 
-        StringBuilder urlBuilder = new StringBuilder(shortTermWeatherURL);
+        StringBuilder urlBuilder = new StringBuilder(ShortWeatherURL);
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=" + serviceKey);
         urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + param.get("pageNo"));
         urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + param.get("numOfRows"));
@@ -108,7 +108,7 @@ public class DataGoAPI {
         return objectMapper.readValue(sb.toString(), HashMap.class);
     }
 
-    private void getMediumTermWeather(HashMap<String,String> _param) throws IOException {
+    private void callAPIMediumWeather(HashMap<String,String> _param) throws IOException {
 
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
         param.put("pageNo",URLEncoder.encode("1", "UTF-8"));  /*페이지번호*/
@@ -144,7 +144,7 @@ public class DataGoAPI {
         log.info(sb.toString());
     }
 
-    public HashMap<String,Object> callGetCovid(HashMap<String,String> _param) throws IOException, Exception {
+    public HashMap<String,Object> callAPICovid(HashMap<String,String> _param) throws IOException, Exception {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
 
         if(commonUtil.isEmptyOrNull(param.get("startCreateDt"))){

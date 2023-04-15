@@ -2,7 +2,6 @@ package com.web.controller;
 
 import com.web.common.CommonException;
 import com.web.common.CommonResVO;
-import com.web.service.CommonService;
 import com.web.service.WeatherService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Api(tags="날씨 컨트롤러")
@@ -24,12 +24,12 @@ public class WeatherRestController {
 	private WeatherService weatherService;
 
 
-	@PostMapping("/getShortTermWeather")
-	public ResponseEntity<?> getShortTermWeather(HashMap<String,Object> param) throws Exception {
+	@PostMapping("/getShortWeather")
+	public ResponseEntity<?> getShortWeather(HashMap<String,Object> param) throws Exception {
 		CommonResVO response = new CommonResVO();
-		HashMap<String,Object> result = null;
+		ArrayList result = null;
 		try {
-			result = weatherService.getShortTermWeather(param);
+			result = weatherService.getShortWeather(param);
 		} catch (CommonException e) {
 			throw new CommonException(e);
 		} catch (Exception e) {

@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.service.RedisService;
+import com.web.service.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,32 +14,32 @@ public class RedisController {
 //레디스 테스트
 
 	@Autowired
-	RedisService redisService;
+	RedisUtil redisUtil;
 
 	@RequestMapping(value = "/redis/test/setString")
 	@ResponseBody
 	public void setValue(String testkey, String testvalue){
 		Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-		redisService.setValues(testkey,testvalue);
+		redisUtil.setValues(testkey,testvalue);
 	}
 
 	@RequestMapping(value = "/redis/test/getString")
 	@ResponseBody
 	public String getValue(String testkey){
-		return redisService.getValues(testkey);
+		return redisUtil.getValues(testkey);
 	}
 
 
 	@RequestMapping(value = "/redis/test/setSets")
 	@ResponseBody
 	public void setSets(String testkey,String... testvalues){
-		redisService.setSets(testkey,testvalues);
+		redisUtil.setSets(testkey,testvalues);
 	}
 
 	@RequestMapping(value = "/redis/test/getSets")
 	@ResponseBody
 	public Set getSets(String key){
-		return redisService.getSets(key);
+		return redisUtil.getSets(key);
 	}
 
 }

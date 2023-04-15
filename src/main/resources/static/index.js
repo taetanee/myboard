@@ -2,13 +2,13 @@ $(document).ready(function (){
     var indexPage = $.extend({}, Common);
 
     var param = {
-        url : "/weather/getShortTermWeather"
+        url : "/weather/getShortWeather"
     }
 
     indexPage.getData = function () {
         indexPage.ajaxTransaction(param)
             .then(function (result) {
-                var item = result.result.response.body.items.item;
+                var item = result.result
                 item.forEach((item, index) => {
                     console.log('item: ' + item + 'index: ' + index);
                     switch (item.category) {

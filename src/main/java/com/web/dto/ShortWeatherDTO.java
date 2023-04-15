@@ -1,14 +1,13 @@
 package com.web.dto;
 
 import lombok.*;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "STWeather")
+@Document(collection = "ShortWeather")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class STWeatherDTO {
+public class ShortWeatherDTO {
 	private String baseDate;
 	private String baseTime;
 	private String category;
