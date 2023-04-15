@@ -88,24 +88,7 @@ public class CovidService {
 			HashMap<String, String> param = (HashMap<String, String>) _param.clone();
 			HashMap<String, Object> covidResult = dataGoAPI.callGetCovid(param);
 
-			//[시작] depth1Response
-			HashMap<String, Object> depth1Response = (HashMap<String, Object>) covidResult.get("response");
-			//[종료] depth1Response
-
-			//[시작] depth2Body
-			if (depth1Response.get("body") == null || "".equals(depth1Response.get("body"))) {
-				throw new CommonException(CommonError.COVID_RESULT_WARN);
-			}
-			HashMap<String, Object> depth2Body = (HashMap<String, Object>) depth1Response.get("body");
-			//[종료] depth2Body
-
-			//[시작] depth3Items
-			HashMap<String, Object> depth3Items = (HashMap<String, Object>) depth2Body.get("items");
-			//[종료] depth3Items
-
-			//[시작] depth4Item
-			ArrayList depth4Item = (ArrayList) depth3Items.get("item");
-			//[종료] depth4Item
+			ArrayList depth4Item = dataGoAPI.getItem(covidResult);
 
 			for (int i = 0; i < depth4Item.size(); i++) {
 				HashMap rawData = (HashMap) depth4Item.get(i);

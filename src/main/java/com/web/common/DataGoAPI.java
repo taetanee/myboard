@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Component
@@ -57,7 +58,7 @@ public class DataGoAPI {
 
     }
 
-    public HashMap<Object,Object> getShortTermWeather(HashMap<String, String> _param) throws Exception {
+    public HashMap<String,Object> getShortTermWeather(HashMap<String, Object> _param) throws Exception {
 
         HashMap<String, String> param = (HashMap<String, String>) _param.clone();
         if (commonUtil.isEmptyOrNull(param.get("base_date"))) {
@@ -187,5 +188,28 @@ public class DataGoAPI {
         log.info(sb.toString());
         JSONObject json = XML.toJSONObject(sb.toString());
         return objectMapper.readValue(json.toString(), HashMap.class);
+    }
+
+    public ArrayList getItem(HashMap<String, Object> param) throws CommonException {
+
+        //[시작] depth1Response
+        HashMap<String, Object> depth1Response = (HashMap<String, Object>) param.get("response");
+        //[종료] depth1Response
+
+        //[시작] depth2Body
+        if (depth1Response.get("body") == null || "".equals(depth1Response.get("body"))) {
+            throw new CommonException(CommonError.COVID_RESULT_WARN);
+        }
+        HashMap<String, Object> depth2Body = (HashMap<String, Object>) depth1Response.get("body");
+        //[종료] depth2Body
+
+        //[시작] depth3Items
+        HashMap<String, Object> depth3Items = (HashMap<String, Object>) depth2Body.get("items");
+        //[종료] depth3Items
+
+        //[시작] depth4Item
+        ArrayList depth4Item = (ArrayList) depth3Items.get("item");
+        //[종료] depth4Item
+        return depth4Item;
     }
 }

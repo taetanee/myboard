@@ -25,9 +25,9 @@ public class WeatherRestController {
 
 
 	@PostMapping("/getShortTermWeather")
-	public ResponseEntity<?> getShortTermWeather(HashMap<String,String> param) throws Exception {
+	public ResponseEntity<?> getShortTermWeather(HashMap<String,Object> param) throws Exception {
 		CommonResVO response = new CommonResVO();
-		HashMap<Object,Object> result = null;
+		HashMap<String,Object> result = null;
 		try {
 			result = weatherService.getShortTermWeather(param);
 		} catch (CommonException e) {
