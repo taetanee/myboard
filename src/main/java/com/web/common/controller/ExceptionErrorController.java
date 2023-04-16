@@ -1,8 +1,8 @@
-package com.web.controller;
+package com.web.common.controller;
 
-import com.web.common.CommonException;
+import com.web.common.Except;
 import com.web.common.CommonResVO;
-import com.web.common.CommonConst;
+import com.web.common.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -21,17 +21,17 @@ public class ExceptionErrorController {
 
         if(ex instanceof HttpRequestMethodNotSupportedException){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            commonResVO.setResultCode(CommonConst.BAD_REQUEST);
-            commonResVO.setResultMsg(CommonConst.BAD_REQUEST_MSG);
-        } else if(ex instanceof CommonException){
+            commonResVO.setResultCode(Const.BAD_REQUEST);
+            commonResVO.setResultMsg(Const.BAD_REQUEST_MSG);
+        } else if(ex instanceof Except){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            CommonException commonException = (CommonException) ex;
-            commonResVO.setResultCode(commonException.getErrCode());
-            commonResVO.setResultMsg(CommonException.getMsg(commonException.getErrCode()));
+            Except except = (Except) ex;
+            commonResVO.setResultCode(except.getErrCode());
+            commonResVO.setResultMsg(Except.getMsg(except.getErrCode()));
         } else {
             log.error("[error] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            commonResVO.setResultCode(CommonConst.INTERNAL_SERVER_ERROR);
-            commonResVO.setResultMsg(CommonConst.INTERNAL_SERVER_ERROR_MSG);
+            commonResVO.setResultCode(Const.INTERNAL_SERVER_ERROR);
+            commonResVO.setResultMsg(Const.INTERNAL_SERVER_ERROR_MSG);
         }
         return ResponseEntity.ok(commonResVO);
     }

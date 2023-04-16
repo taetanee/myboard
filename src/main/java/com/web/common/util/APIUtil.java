@@ -1,6 +1,7 @@
-package com.web.common;
+package com.web.common.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.web.common.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.json.XML;
@@ -74,8 +75,8 @@ public class APIUtil {
         param.put("dataType",URLEncoder.encode("JSON", "UTF-8")); /*요청자료형식(XML/JSON) Default: XML*/
         param.put("base_date",URLEncoder.encode(param.get("base_date"), "UTF-8")); /*‘21년 6월 28일 발표*/
         param.put("base_time",URLEncoder.encode(param.get("base_time"), "UTF-8")); /*06시 발표(정시단위) */
-        param.put("nx",URLEncoder.encode(CommonConst.NX, "UTF-8")); /*예보지점의 X 좌표값*/
-        param.put("ny",URLEncoder.encode(CommonConst.NY, "UTF-8")); /*예보지점의 Y 좌표값*/
+        param.put("nx",URLEncoder.encode(Const.NX, "UTF-8")); /*예보지점의 X 좌표값*/
+        param.put("ny",URLEncoder.encode(Const.NY, "UTF-8")); /*예보지점의 Y 좌표값*/
 
         StringBuilder urlBuilder = new StringBuilder(ShortWeatherURL);
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=" + serviceKey);
@@ -198,7 +199,7 @@ public class APIUtil {
 
         //[시작] depth2Body
         if (depth1Response.get("body") == null || "".equals(depth1Response.get("body"))) {
-            throw new Exception(String.valueOf(CommonConst.NO_DATA_API_ERROR));
+            throw new Exception(String.valueOf(Const.NO_DATA_API_ERROR));
         }
         HashMap<String, Object> depth2Body = (HashMap<String, Object>) depth1Response.get("body");
         //[종료] depth2Body

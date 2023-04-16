@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.common.CommonException;
+import com.web.common.Except;
 import com.web.common.CommonResVO;
 import com.web.service.CommonService;
 import io.swagger.annotations.Api;
@@ -43,7 +43,7 @@ public class CommonRestController {
     @PostMapping("/exceptionTest")
     public void exceptionTest() throws Exception {
         if( true ){
-            throw new CommonException(CommonException.MD_ERR_EXCEPTION);
+            throw new Except(Except.MD_ERR_EXCEPTION);
         } else {
             throw new Exception("exceptionTest");
         }

@@ -1,6 +1,7 @@
-package com.web.common;
+package com.web.common.config;
 
 
+import com.web.common.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
@@ -12,7 +13,7 @@ import java.util.Arrays;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
-    private CommonInterceptor commonInterceptor;
+    private Interceptor commonInterceptor;
 
     //로그인 체크 페턴
     private String[] includedUrlPatterns = {

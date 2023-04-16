@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.common.CommonException;
+import com.web.common.Except;
 import com.web.common.CommonResVO;
 import com.web.service.WeatherService;
 import io.swagger.annotations.Api;
@@ -23,15 +23,14 @@ public class WeatherRestController {
 	@Autowired
 	private WeatherService weatherService;
 
-
 	@PostMapping("/getShortWeather")
 	public ResponseEntity<?> getShortWeather(HashMap<String,Object> param) throws Exception {
 		CommonResVO response = new CommonResVO();
 		ArrayList result = null;
 		try {
 			result = weatherService.getShortWeather(param);
-		} catch (CommonException e) {
-			throw new CommonException(e);
+		} catch (Except e) {
+			throw new Except(e);
 		} catch (Exception e) {
 			throw new Exception(e);
 		}
@@ -39,4 +38,5 @@ public class WeatherRestController {
 		response.setResult(result);
 		return ResponseEntity.ok(response);
 	}
+
 }

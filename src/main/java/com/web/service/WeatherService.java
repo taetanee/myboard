@@ -3,9 +3,10 @@ package com.web.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.web.common.APIUtil;
-import com.web.common.CommonConst;
-import com.web.common.CommonUtil;
+import com.web.common.util.APIUtil;
+import com.web.common.Const;
+import com.web.common.util.CommonUtil;
+import com.web.common.util.RedisUtil;
 import com.web.dto.ShortWeatherDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +47,8 @@ public class WeatherService {
 		//[시작] 기본값 세팅
 		HashMap<String,Object> param = (HashMap<String, Object>) _param.clone();
 		if(param.get("nx") == null || param.get("ny") == null){
-			param.put("nx", CommonConst.NX);
-			param.put("ny", CommonConst.NY);
+			param.put("nx", Const.NX);
+			param.put("ny", Const.NY);
 		}
 		if(param.get("base_date") == null){
 			param.put("baseDate", commonUtil.getMinusOneHour(commonUtil.getNow()).substring(0,8));

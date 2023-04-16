@@ -1,6 +1,6 @@
 package com.web.common;
 
-public class CommonConst {
+public class Const {
 
 	public static final String NX = "62";
 	public static final String NY = "125";

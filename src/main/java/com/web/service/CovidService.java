@@ -1,9 +1,9 @@
 package com.web.service;
 
 
-import com.web.common.CommonException;
+import com.web.common.Except;
 import com.web.common.CommonResVO;
-import com.web.common.APIUtil;
+import com.web.common.util.APIUtil;
 import com.web.dto.CovidDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,8 +125,8 @@ public class CovidService {
 				);
 			}
 
-		} catch (CommonException e) {
-			log.warn("[CommonException발생] ERR_CODE : "+ e.getErrCode());
+		} catch (Except e) {
+			log.warn("[except발생] ERR_CODE : "+ e.getErrCode());
 			for (String key : _param.keySet()) {
 				System.out.println("key : " + key + "/" + "value : " + _param.get(key));
 			}

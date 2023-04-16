@@ -1,6 +1,6 @@
 package com.web.service;
 
-import com.web.common.*;
+import com.web.common.util.CommonUtil;
 import com.web.mapper.CommonMapper;
 import com.web.dto.CovidDto;
 import lombok.extern.slf4j.Slf4j;

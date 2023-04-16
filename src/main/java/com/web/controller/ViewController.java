@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 public class ViewController {
 
-    @Autowired
-    private CommonService service;
-
     @GetMapping(value = {"","index"})
     public Object index(Model model, HttpServletRequest request) {
         return "index";

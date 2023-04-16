@@ -1,4 +1,4 @@
-package com.web.controller;
+package com.web.common.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
