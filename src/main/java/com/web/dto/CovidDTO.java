@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CovidDto {
+public class CovidDTO {
     private double accDefRate;
     private int accExamCnt;
     private String stateTime;

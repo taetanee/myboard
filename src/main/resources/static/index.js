@@ -2,20 +2,32 @@ var indexPage = $.extend({}, Common);
 
 indexPage.init = function () {
 
-    indexPage.getData();
+    indexPage.getShortWeather();
+
+    indexPage.getCovid();
 }
 
 indexPage.getCurrentPosition = function () {
     navigator.geolocation.getCurrentPosition(function (pos) {
         var result = {
-            nx: pos.coords.latitude
-            , ny: pos.coords.longitude
+            latitude: pos.coords.latitude
+            , longitude: pos.coords.longitude
         }
         return result;
     });
 }
 
-indexPage.getData = function (param) {
+indexPage.getCovid = function () {
+
+    var param = {
+        url: "/covid/getCovid"
+    }
+    indexPage.ajaxTransaction(param).then(function (result) {
+        $("#covid").text(JSON.stringify(result));
+    });
+}
+
+indexPage.getShortWeather = function () {
 
     var currentPosition = indexPage.getCurrentPosition();
     if (currentPosition == undefined) {
@@ -28,8 +40,8 @@ indexPage.getData = function (param) {
 
     var param = {
         url: "/weather/getShortWeather"
-        , nx: currentPosition.nx
-        , ny: currentPosition.ny
+        , nx: currentPosition.latitude
+        , ny: currentPosition.longitude
     }
 
     indexPage.ajaxTransaction(param).then(function (result) {
@@ -65,7 +77,7 @@ indexPage.getData = function (param) {
                     break;
             }
         });
-        $("#board").text(JSON.stringify(item));
+        $("#short_weather").text(JSON.stringify(item));
 
     }, function (error) {
         alert('오류발생');

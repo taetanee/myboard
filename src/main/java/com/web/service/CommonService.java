@@ -2,7 +2,7 @@ package com.web.service;
 
 import com.web.common.util.CommonUtil;
 import com.web.mapper.CommonMapper;
-import com.web.dto.CovidDto;
+import com.web.dto.CovidDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,8 +27,8 @@ public class CommonService {
     }
 
 
-    public CovidDto junitTest(){
-        CovidDto result = new CovidDto();
+    public CovidDTO junitTest(){
+        CovidDTO result = new CovidDTO();
         result.setUpdateDt("A");
         return result;
     }

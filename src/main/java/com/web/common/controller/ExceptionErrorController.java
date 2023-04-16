@@ -1,6 +1,6 @@
 package com.web.common.controller;
 
-import com.web.common.Except;
+import com.web.common.MyException;
 import com.web.common.CommonResVO;
 import com.web.common.Const;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +23,11 @@ public class ExceptionErrorController {
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
             commonResVO.setResultCode(Const.BAD_REQUEST);
             commonResVO.setResultMsg(Const.BAD_REQUEST_MSG);
-        } else if(ex instanceof Except){
+        } else if(ex instanceof MyException){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            Except except = (Except) ex;
-            commonResVO.setResultCode(except.getErrCode());
-            commonResVO.setResultMsg(Except.getMsg(except.getErrCode()));
+            MyException myException = (MyException) ex;
+            commonResVO.setResultCode(myException.getErrCode());
+            commonResVO.setResultMsg(MyException.getMsg(myException.getErrCode()));
         } else {
             log.error("[error] URI : " + request.getRequestURI() + " / exception e = " , ex);
             commonResVO.setResultCode(Const.INTERNAL_SERVER_ERROR);

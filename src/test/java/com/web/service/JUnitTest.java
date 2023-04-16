@@ -1,6 +1,6 @@
 package com.web.service;
 
-import com.web.dto.CovidDto;
+import com.web.dto.CovidDTO;
 import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +32,7 @@ public class JUnitTest {
 
             //when
             double x2 = 3.5;
-            CovidDto y2 = commonService.junitTest();
+            CovidDTO y2 = commonService.junitTest();
 
             //then
             assertThat(x1, closeTo(x2,0.3));
@@ -51,7 +51,7 @@ public class JUnitTest {
 
             //when
             double x2 = 3.5;
-            CovidDto y2 = commonService.junitTest();
+            CovidDTO y2 = commonService.junitTest();
 
             //then
             assertThat(x1, closeTo(x2,0.1)); //이 경우에는 error 발생
@@ -68,7 +68,7 @@ public class JUnitTest {
 
             //when
             double x2 = 3.5;
-            CovidDto y2 = commonService.junitTest();
+            CovidDTO y2 = commonService.junitTest();
 
             //then
             assertThat(y2.getUpdateDt(), is("B")); //이 경우에는 error 발생

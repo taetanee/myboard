@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.common.Except;
+import com.web.common.MyException;
 import com.web.common.CommonResVO;
 import com.web.service.WeatherService;
 import io.swagger.annotations.Api;
@@ -29,8 +29,8 @@ public class WeatherRestController {
 		ArrayList result = null;
 		try {
 			result = weatherService.getShortWeather(param);
-		} catch (Except e) {
-			throw new Except(e);
+		} catch (MyException e) {
+			throw new MyException(e);
 		} catch (Exception e) {
 			throw new Exception(e);
 		}

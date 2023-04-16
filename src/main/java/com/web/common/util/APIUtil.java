@@ -24,7 +24,7 @@ public class APIUtil {
     private static final String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
     private static final String ShortWeatherURL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
     private static final String mediumTermWeatherURL = "http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst";
-    private static final String covidURL = "http://openapi.data.go.kr/openapi/service/rest/Covid19/getCovid19InfStateJson";
+    private static final String covidURL = "http://apis.data.go.kr/1352000/ODMS_COVID_04/callCovid04Api";
     private static final String stockURL = "https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService";
 
 
@@ -105,7 +105,6 @@ public class APIUtil {
         rd.close();
         conn.disconnect();
         log.info(sb.toString());
-        //objectMapper.readValue(sb.toString(), HashMap.class);
         return objectMapper.readValue(sb.toString(), HashMap.class);
     }
 
@@ -145,34 +144,31 @@ public class APIUtil {
         log.info(sb.toString());
     }
 
-    public HashMap<String,Object> callAPICovid(HashMap<String,String> _param) throws IOException, Exception {
+    public HashMap<String,Object> callAPICovid(HashMap<String,Object> _param) throws IOException, Exception {
         HashMap<String,String> param = (HashMap<String, String>) _param.clone();
 
-        if(commonUtil.isEmptyOrNull(param.get("startCreateDt"))){
-            throw new Exception("startCreateDt isEmptyOrNull");
+        if (commonUtil.isEmptyOrNull(param.get("base_date"))) {
+            param.put("base_date", commonUtil.getMinusOneHour(commonUtil.getNow()).substring(0,8));
         }
 
-        if(commonUtil.isEmptyOrNull(param.get("endCreateDt"))){
-            throw new Exception("endCreateDt isEmptyOrNull");
+        if (commonUtil.isEmptyOrNull(param.get("base_date"))) {
+            param.put("base_date", commonUtil.getMinusOneHour(commonUtil.getNow()).substring(0,8));
         }
 
-        HashMap<String,String> paramAPI = new HashMap();
-        paramAPI.put("pageNo",URLEncoder.encode(commonUtil.NVL(param.get("pageNo"),"1"), "UTF-8"));
-        paramAPI.put("numOfRows",URLEncoder.encode(commonUtil.NVL(param.get("numOfRows"),"10"), "UTF-8"));
-        paramAPI.put("dataType",URLEncoder.encode("JSON", "UTF-8"));
-        paramAPI.put("startCreateDt",URLEncoder.encode(commonUtil.NVL(param.get("startCreateDt"),"20200101"), "UTF-8"));
-        paramAPI.put("endCreateDt",URLEncoder.encode(commonUtil.NVL(param.get("endCreateDt"),"20200131"), "UTF-8"));
+        StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1352000/ODMS_COVID_04/callCovid04Api"); /*URL*/
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=서비스키"); /*Service Key*/
+        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호*/
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + URLEncoder.encode("500", "UTF-8")); /*한 페이지 결과 수*/
+        urlBuilder.append("&" + URLEncoder.encode("apiType","UTF-8") + "=" + URLEncoder.encode("xml", "UTF-8")); /*결과형식(xml/json)*/
+        urlBuilder.append("&" + URLEncoder.encode("std_day","UTF-8") + "=" + URLEncoder.encode("2021-12-15", "UTF-8")); /*기준일자*/
 
-        StringBuilder urlBuilder = new StringBuilder(covidURL); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "="+serviceKey);
-        urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + paramAPI.get("pageNo"));
-        urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + paramAPI.get("numOfRows"));
-        urlBuilder.append("&" + URLEncoder.encode("startCreateDt","UTF-8") + "=" + paramAPI.get("startCreateDt"));
-        urlBuilder.append("&" + URLEncoder.encode("endCreateDt","UTF-8") + "=" + paramAPI.get("endCreateDt"));
+        //TODO 전국은 안돼????확인해봐야함
+        urlBuilder.append("&" + URLEncoder.encode("gubun","UTF-8") + "=" + URLEncoder.encode("경기", "UTF-8")); /*시도명*/
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
+        System.out.println("Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -187,8 +183,7 @@ public class APIUtil {
         rd.close();
         conn.disconnect();
         log.info(sb.toString());
-        JSONObject json = XML.toJSONObject(sb.toString());
-        return objectMapper.readValue(json.toString(), HashMap.class);
+        return objectMapper.readValue(sb.toString(), HashMap.class);
     }
 
     public ArrayList getItem(HashMap<String, Object> param) throws Exception {
@@ -205,6 +200,9 @@ public class APIUtil {
         //[종료] depth2Body
 
         //[시작] depth3Items
+        if (depth2Body.get("items") == null || "".equals(depth2Body.get("items"))) {
+            throw new Exception(Const.NO_DATA_API_ERROR_MSG);
+        }
         HashMap<String, Object> depth3Items = (HashMap<String, Object>) depth2Body.get("items");
         //[종료] depth3Items
 

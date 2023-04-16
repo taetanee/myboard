@@ -3,7 +3,7 @@ package com.web.common;
 import lombok.Getter;
 import lombok.Setter;
 
-public class Except extends Exception {
+public class MyException extends Exception {
 
 
 	public static final int MD_ERR_EXCEPTION        =   1001;
@@ -12,16 +12,16 @@ public class Except extends Exception {
 	@Getter @Setter
 	private int errCode;
 
-	public Except(int errCode) {
+	public MyException(int errCode) {
 		this.errCode = errCode;
 	}
 
-	public Except(Exception ex) {
+	public MyException(Exception ex) {
 		super(ex);
-		if(ex instanceof Except)
-			this.errCode = ((Except) ex).getErrCode();
+		if(ex instanceof MyException)
+			this.errCode = ((MyException) ex).getErrCode();
 		else
-			this.errCode = Except.MD_ERR_EXCEPTION;
+			this.errCode = MyException.MD_ERR_EXCEPTION;
 	}
 
 	public static String getMsg(int errCd) {
