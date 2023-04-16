@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 @Component
 @Slf4j
-public class DataGoAPI {
+public class APIUtil {
 
     private static final String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
     private static final String ShortWeatherURL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
@@ -34,7 +34,7 @@ public class DataGoAPI {
     private ObjectMapper objectMapper;
 
     public static void main(String[] args) {
-        DataGoAPI _this = new DataGoAPI();
+        APIUtil _this = new APIUtil();
 //        try {
 //            HashMap<String,String> param = new HashMap();
 //            _this.getShortTermWeat0her(param);
@@ -74,8 +74,8 @@ public class DataGoAPI {
         param.put("dataType",URLEncoder.encode("JSON", "UTF-8")); /*요청자료형식(XML/JSON) Default: XML*/
         param.put("base_date",URLEncoder.encode(param.get("base_date"), "UTF-8")); /*‘21년 6월 28일 발표*/
         param.put("base_time",URLEncoder.encode(param.get("base_time"), "UTF-8")); /*06시 발표(정시단위) */
-        param.put("nx",URLEncoder.encode("55", "UTF-8")); /*예보지점의 X 좌표값*/
-        param.put("ny",URLEncoder.encode("127", "UTF-8")); /*예보지점의 Y 좌표값*/
+        param.put("nx",URLEncoder.encode(CommonConst.NX, "UTF-8")); /*예보지점의 X 좌표값*/
+        param.put("ny",URLEncoder.encode(CommonConst.NY, "UTF-8")); /*예보지점의 Y 좌표값*/
 
         StringBuilder urlBuilder = new StringBuilder(ShortWeatherURL);
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=" + serviceKey);
@@ -156,11 +156,11 @@ public class DataGoAPI {
         }
 
         HashMap<String,String> paramAPI = new HashMap();
-        paramAPI.put("pageNo",URLEncoder.encode(commonUtil.getValueIfNull(param.get("pageNo"),"1"), "UTF-8"));
-        paramAPI.put("numOfRows",URLEncoder.encode(commonUtil.getValueIfNull(param.get("numOfRows"),"10"), "UTF-8"));
+        paramAPI.put("pageNo",URLEncoder.encode(commonUtil.NVL(param.get("pageNo"),"1"), "UTF-8"));
+        paramAPI.put("numOfRows",URLEncoder.encode(commonUtil.NVL(param.get("numOfRows"),"10"), "UTF-8"));
         paramAPI.put("dataType",URLEncoder.encode("JSON", "UTF-8"));
-        paramAPI.put("startCreateDt",URLEncoder.encode(commonUtil.getValueIfNull(param.get("startCreateDt"),"20200101"), "UTF-8"));
-        paramAPI.put("endCreateDt",URLEncoder.encode(commonUtil.getValueIfNull(param.get("endCreateDt"),"20200131"), "UTF-8"));
+        paramAPI.put("startCreateDt",URLEncoder.encode(commonUtil.NVL(param.get("startCreateDt"),"20200101"), "UTF-8"));
+        paramAPI.put("endCreateDt",URLEncoder.encode(commonUtil.NVL(param.get("endCreateDt"),"20200131"), "UTF-8"));
 
         StringBuilder urlBuilder = new StringBuilder(covidURL); /*URL*/
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "="+serviceKey);
@@ -190,7 +190,7 @@ public class DataGoAPI {
         return objectMapper.readValue(json.toString(), HashMap.class);
     }
 
-    public ArrayList getItem(HashMap<String, Object> param) throws CommonException {
+    public ArrayList getItem(HashMap<String, Object> param) throws Exception {
 
         //[시작] depth1Response
         HashMap<String, Object> depth1Response = (HashMap<String, Object>) param.get("response");
@@ -198,7 +198,7 @@ public class DataGoAPI {
 
         //[시작] depth2Body
         if (depth1Response.get("body") == null || "".equals(depth1Response.get("body"))) {
-            throw new CommonException(CommonError.COVID_RESULT_WARN);
+            throw new Exception(String.valueOf(CommonConst.NO_DATA_API_ERROR));
         }
         HashMap<String, Object> depth2Body = (HashMap<String, Object>) depth1Response.get("body");
         //[종료] depth2Body

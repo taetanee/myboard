@@ -2,7 +2,7 @@ package com.web.controller;
 
 import com.web.common.CommonException;
 import com.web.common.CommonResVO;
-import com.web.common.CommonError;
+import com.web.common.CommonConst;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -21,8 +21,8 @@ public class ExceptionErrorController {
 
         if(ex instanceof HttpRequestMethodNotSupportedException){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            commonResVO.setResultCode(CommonError.BAD_REQUEST);
-            commonResVO.setResultMsg(CommonError.BAD_REQUEST_MSG);
+            commonResVO.setResultCode(CommonConst.BAD_REQUEST);
+            commonResVO.setResultMsg(CommonConst.BAD_REQUEST_MSG);
         } else if(ex instanceof CommonException){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);
             CommonException commonException = (CommonException) ex;
@@ -30,8 +30,8 @@ public class ExceptionErrorController {
             commonResVO.setResultMsg(CommonException.getMsg(commonException.getErrCode()));
         } else {
             log.error("[error] URI : " + request.getRequestURI() + " / exception e = " , ex);
-            commonResVO.setResultCode(CommonError.INTERNAL_SERVER_ERROR);
-            commonResVO.setResultMsg(CommonError.INTERNAL_SERVER_ERROR_MSG);
+            commonResVO.setResultCode(CommonConst.INTERNAL_SERVER_ERROR);
+            commonResVO.setResultMsg(CommonConst.INTERNAL_SERVER_ERROR_MSG);
         }
         return ResponseEntity.ok(commonResVO);
     }

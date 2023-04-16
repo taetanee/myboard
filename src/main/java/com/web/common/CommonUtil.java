@@ -17,7 +17,7 @@ public class CommonUtil {
 
         HashMap<String,String> param = new HashMap();
         param.put("xx","");
-        System.out.println(_this.getValueIfNull(param.get("xx"),"isNull"));
+        System.out.println(_this.NVL(param.get("xx"),"isNull"));
     }
 
     /**
@@ -37,7 +37,7 @@ public class CommonUtil {
      * @param targetObject 체크하려는 값
      * @param nullObject null일때 반환하는 값
      */
-    public String getValueIfNull(String targetObject, String nullObject){
+    public String NVL(String targetObject, String nullObject){
         String result = "";
         if(this.isEmptyOrNull(targetObject)){
             result = nullObject;
@@ -57,8 +57,8 @@ public class CommonUtil {
     /**
      * 현재시간을 yyyyMMdd로 반환하는 함수
      */
-    public String getNowDate() {
-        return this.getNow("yyyyMMdd");
+    public static String getNowDate() {
+        return getNow("yyyyMMdd");
     }
 
     /**
@@ -80,7 +80,7 @@ public class CommonUtil {
      * 현재시간을 첫번째 인자의 패턴으로 반환하는 함수
      * @param pattern 날짜 형식 패턴
      */
-    public String getNow(String pattern){
+    public static String getNow(String pattern){
         SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         Calendar c1 = Calendar.getInstance();
         String strToday = sdf.format(c1.getTime());
@@ -122,4 +122,5 @@ public class CommonUtil {
         // 변환된 문자열 반환
         return modifiedTime.format(outputFormatter);
     }
+
 }

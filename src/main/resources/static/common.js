@@ -41,4 +41,7 @@ var Common = {
         alert(msg);
         throw(msg);
     }
+    , init : function(){
+
+    }
 };

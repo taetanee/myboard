@@ -3,7 +3,7 @@ package com.web.service;
 
 import com.web.common.CommonException;
 import com.web.common.CommonResVO;
-import com.web.common.DataGoAPI;
+import com.web.common.APIUtil;
 import com.web.dto.CovidDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ import java.util.List;
 public class CovidService {
 
 	@Autowired
-	private DataGoAPI dataGoAPI;
+	private APIUtil apiUtil;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -85,9 +85,9 @@ public class CovidService {
 
 		try {
 			HashMap<String, String> param = (HashMap<String, String>) _param.clone();
-			HashMap<String, Object> covidResult = dataGoAPI.callAPICovid(param);
+			HashMap<String, Object> covidResult = apiUtil.callAPICovid(param);
 
-			ArrayList depth4Item = dataGoAPI.getItem(covidResult);
+			ArrayList depth4Item = apiUtil.getItem(covidResult);
 
 			for (int i = 0; i < depth4Item.size(); i++) {
 				HashMap rawData = (HashMap) depth4Item.get(i);
