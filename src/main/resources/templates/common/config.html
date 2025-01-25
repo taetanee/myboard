@@ -5,19 +5,25 @@
 <!--configFragment 선언-->
 <th:block th:fragment="configFragment">
 
-
-    <!-- 이 영역에 공통으로 사용할 css, js library를 선언한다. -->
+    <!--[시작] 공통 css-->
     <link rel="stylesheet" th:href="@{/common.css}" >
+    <!--[종료] 공통 css-->
 
+    <!--[시작] jQuery cdn -->
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <!--[종료] jQuery cdn -->
 
+    <!--[시작] 공통 js -->
     <script th:src="@{/common.js}"></script>
+    <!--[종료] 공통 js -->
 
-    <!-- Content Page의 CSS fragment 삽입 -->
+    <!--[시작] 개별 페이지의 css -->
     <th:block layout:fragment="css"></th:block>
+    <!--[종료] 개별 페이지의 css -->
 
-    <!-- Content Page의 script fragment 삽입 -->
+    <!--[시작] 개별 페이지의 js -->
     <th:block layout:fragment="script"></th:block>
+    <!--[시작] 개별 페이지의 js -->
 
 </th:block>
 </html>
