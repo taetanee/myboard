@@ -34,31 +34,6 @@ public class APIUtil {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public static void main(String[] args) {
-        APIUtil _this = new APIUtil();
-//        try {
-//            HashMap<String,String> param = new HashMap();
-//            _this.getShortTermWeat0her(param);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-//        try {
-//            HashMap<String,String> param = new HashMap();
-//            _this.getMediumTermWeather(param);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-//        try {
-//            HashMap<String,String> param = new HashMap();
-//            _this.getCovid(param);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-    }
-
     public HashMap<String,Object> callAPIShortWeather(HashMap<String, Object> _param) throws Exception {
 
         HashMap<String, String> param = (HashMap<String, String>) _param.clone();
