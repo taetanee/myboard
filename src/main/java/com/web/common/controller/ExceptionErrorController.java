@@ -33,6 +33,7 @@ public class ExceptionErrorController {
             commonResVO.setResultCode(Const.INTERNAL_SERVER_ERROR);
             commonResVO.setResultMsg(Const.INTERNAL_SERVER_ERROR_MSG);
         }
+
         return ResponseEntity.ok(commonResVO);
     }
 }
