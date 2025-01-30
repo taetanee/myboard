@@ -2,12 +2,12 @@ var indexPage = $.extend({}, Common);
 
 indexPage.init = function () {
 
-    indexPage.getShortWeather();
+    indexPage.location.getShortWeather();
 
-    indexPage.getCovid();
+    indexPage.location.getCovid();
 }
 
-indexPage.getCurrentPosition = function () {
+indexPage.location.getCurrentPosition = function () {
     navigator.geolocation.getCurrentPosition(function (pos) {
         var result = {
             latitude: pos.coords.latitude
@@ -17,7 +17,7 @@ indexPage.getCurrentPosition = function () {
     });
 }
 
-indexPage.getCovid = function () {
+indexPage.location.getCovid = function () {
 
     var param = {
         url: "/covid/getCovid"
@@ -27,9 +27,9 @@ indexPage.getCovid = function () {
     });
 }
 
-indexPage.getShortWeather = function () {
+indexPage.location.getShortWeather = function () {
 
-    var currentPosition = indexPage.getCurrentPosition();
+    var currentPosition = indexPage.location.getCurrentPosition();
     if (currentPosition == undefined) {
         alert('위치정보를 허용하지 않은 상태');
         currentPosition = {

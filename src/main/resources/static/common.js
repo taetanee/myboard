@@ -2,7 +2,8 @@
  * Common 객체
  */
 var Common = {
-    ajaxTransaction : function ( _param ) {
+    location : {}
+    , ajaxTransaction : function ( _param ) {
         return new Promise(function (resolve, reject) {
             if(Common.isNull(_param)){
                 Common.error("param is null");
