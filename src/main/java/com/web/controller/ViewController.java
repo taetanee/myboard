@@ -29,4 +29,9 @@ public class ViewController {
     public Object exceptionTest(Model model, HttpServletRequest request) {
         return "dev/exceptionTest";
     }
+
+    @GetMapping("dev/clipboard")
+    public Object clipboard(Model model, HttpServletRequest request) {
+        return "dev/clipboard";
+    }
 }

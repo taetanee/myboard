@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/default_layout}">
+
+<div layout:fragment="content" class="container bg-white p-4 rounded shadow" style="max-width: 600px;">
+  <h1 class="text-center mb-4">Online Clipboard</h1>
+  <textarea class="form-control mb-3" id="clipboard" rows="8" placeholder="Type or paste your text here..."></textarea>
+  <div class="d-flex justify-content-between">
+    <button class="btn btn-danger">Clear</button>
+    <button class="btn btn-success" id="btn-success">Copy</button>
+  </div>
+</div>
+
+<th:block layout:fragment="script">
+  <script src="/clipboard.js"></script>
+</th:block>
+
+</html>
