@@ -5,13 +5,19 @@ clipboardPage.init = function () {
 }
 
 clipboardPage.events = {
-    'click #btn-success': 'clipboardPage.location.alert'
+    'click #copyBtn': 'clipboardPage.event.clickedCopyBtn'
 }
 
-clipboardPage.location.alert = function (){
-    alert('1');
+clipboardPage.event.clickedCopyBtn = function () {
+    clipboardPage.event.copy();
 }
 
+clipboardPage.event.copy = function () {
+    const clipboardValue = $("#clipboard").val();
+    window.navigator.clipboard.writeText(clipboardValue).then(() => {
+        alert('복사완료');//TODO : 토스트 메세지로 구현하기
+    });
+}
 
 $(document).ready(function () {
     clipboardPage.init();
