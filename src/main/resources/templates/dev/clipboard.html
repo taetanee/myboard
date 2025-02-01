@@ -5,18 +5,19 @@
       layout:decorate="~{common/default_layout}">
 
 <div layout:fragment="content">
-  <div class="container bg-white p-4 rounded shadow" style="max-width: 600px;">
-    <h1 class="text-center mb-4">Online Clipboard</h1>
-    <textarea class="form-control mb-3" id="clipboard" rows="8" placeholder="Type or paste your text here..."></textarea>
-    <div class="d-flex justify-content-between">
-      <button class="btn btn-danger">Clear</button>
-      <button class="btn btn-success" id="copyBtn">Copy</button>
+    <div class="container bg-white p-4 rounded shadow" style="max-width: 700px;">
+        <h1 class="text-center mb-4">온라인 클립보드(Online Clipboard)</h1>
+        <input type="text" name="random_word" id="random_word" readonly>
+        <textarea class="form-control mb-3" id="clipboard" rows="8" placeholder="여기에 입력하거나 복사하세요(Type or paste your text here)"></textarea>
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-danger">Clear</button>
+            <button class="btn btn-success" id="copyBtn">Copy</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <th:block layout:fragment="script">
-  <script src="/clipboard.js"></script>
+    <script src="/clipboard.js"></script>
 </th:block>
 
 </html>
