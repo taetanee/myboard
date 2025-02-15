@@ -8,16 +8,28 @@ clipboardPage.init = function () {
 
 clipboardPage.events = {
     'click #copyBtn': 'clipboardPage.event.clickedCopyBtn'
+    , 'click #shareBtn': 'clipboardPage.event.clickedShareBtn'
 }
 
 clipboardPage.event.clickedCopyBtn = function () {
-    clipboardPage.location.copy();
+    clipboardPage.location.copyContent();
 }
 
-clipboardPage.location.copy = function () {
-    const clipboardValue = $("#clipboard").val();
-    window.navigator.clipboard.writeText(clipboardValue).then(() => {
-        alert('복사완료');//TODO : 토스트 메세지로 구현하기
+clipboardPage.event.clickedShareBtn = function () {
+    clipboardPage.location.shareURL();
+}
+
+clipboardPage.location.copyContent = function () {
+    const val = $("#content").val();
+    window.navigator.clipboard.writeText(val).then(() => {
+        alert('Content copy completed(내용복사완료)');//TODO : 토스트 메세지로 구현하기
+    });
+}
+
+clipboardPage.location.shareURL = function () {
+    const val = window.location.href;
+    window.navigator.clipboard.writeText(val).then(() => {
+        alert('URL copy completed(URL복사완료)');//TODO : 토스트 메세지로 구현하기
     });
 }
 
@@ -26,10 +38,12 @@ clipboardPage.location.getRandomWord = function () {
         url: "/onlineClipboard/getRandomWord"
     };
     clipboardPage.ajaxTransaction(param).then(function (result) {
-        const randomWord = {
-            "random_word" :  result.result[0]["word"] + " " + result.result[1]["word"]
+        const randomWord = result.result;
+        const obj = {
+            "randomWord" :  randomWord
         }
-        Common.setDetails(randomWord, $(".container"));
+        Common.setDetails(obj, $(".container"));
+        history.pushState(null, null, '?url='+randomWord);
     });
 }
 

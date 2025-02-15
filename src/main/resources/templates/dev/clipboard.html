@@ -6,12 +6,15 @@
 
 <div layout:fragment="content">
     <div class="container bg-white p-4 rounded shadow" style="max-width: 700px;">
-        <h1 class="text-center mb-4">온라인 클립보드(Online Clipboard)</h1>
-        <input type="text" name="random_word" id="random_word" readonly>
-        <textarea class="form-control mb-3" id="clipboard" rows="8" placeholder="여기에 입력하거나 복사하세요(Type or paste your text here)"></textarea>
+        <h1 class="text-center mb-4">Online Clipboard(온라인 클립보드)</h1>
+            <div class="d-flex justify-content-end">
+                <input type="text" name="randomWord" id="randomWord" readonly>
+                <button class="btn btn-secondary" id="shareBtn">URL Share(URL 공유)</button>
+            </div>
+        <textarea class="form-control mb-3" id="content" rows="20" placeholder="여기에 입력하거나 복사하세요(Type or paste your text here)"></textarea>
         <div class="d-flex justify-content-between">
-            <button class="btn btn-danger">Clear</button>
-            <button class="btn btn-success" id="copyBtn">Copy</button>
+            <button class="btn btn-success" id="copyBtn">Copy(복사하기)</button>
+            <button class="btn btn-primary" id="saveBtn">Save(저장)</button>
         </div>
     </div>
 </div>

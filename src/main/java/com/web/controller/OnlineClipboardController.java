@@ -27,7 +27,7 @@ public class OnlineClipboardController {
 	@PostMapping("/getRandomWord")
 	public ResponseEntity<?> getRandomWord() throws Exception {
 		CommonResVO response = new CommonResVO();
-		ArrayList result = null;
+		String result = null;
 		try {
 			result = onlineClipboardService.getRandomWord();
 		} catch (MyException e) {

@@ -23,10 +23,16 @@ public class OnlineClipboardService {
 	@Autowired
 	private OnlineClipboardMapper onlineClipboardMapper;
 
-	public ArrayList getRandomWord() throws Exception {
-		ArrayList result = new ArrayList();
-		result.add(onlineClipboardMapper.getRandomWord("1"));
-		result.add(onlineClipboardMapper.getRandomWord("2"));
+//	public ArrayList getRandomWord() throws Exception {
+//		ArrayList result = new ArrayList();
+//		result.add(onlineClipboardMapper.getRandomWord("1"));
+//		result.add(onlineClipboardMapper.getRandomWord("2"));
+//		return result;
+//	}
+
+	public String getRandomWord() throws Exception {
+		String result = new String();
+		result = commonUtil.getUUID(3);
 		return result;
 	}
 }
