@@ -2,9 +2,8 @@ package com.web.service;
 
 
 import com.google.gson.Gson;
-import com.web.common.Const;
 import com.web.common.MyException;
-import com.web.common.CommonResVO;
+import com.web.common.CommonResponse;
 import com.web.common.util.APIUtil;
 import com.web.common.util.CommonUtil;
 import com.web.common.util.RedisUtil;
@@ -102,8 +101,8 @@ public class CovidService {
 
 
 
-	public CommonResVO setCovidMongoDB(HashMap<String,Object> _param) throws Exception {
-		CommonResVO result = new CommonResVO();
+	public CommonResponse setCovidMongoDB(HashMap<String,Object> _param) throws Exception {
+		CommonResponse result = new CommonResponse();
 
 		try {
 			HashMap<String, Object> param = (HashMap<String, Object>) _param.clone();

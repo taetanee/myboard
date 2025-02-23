@@ -1,7 +1,7 @@
 /**
  * Common 객체
  */
-var Common = {
+var CommonObject = {
     location: {}
     , event: {}
     , events: {}
@@ -14,12 +14,22 @@ var Common = {
             return false;
         }
     }
+    , NVL : function (sParam, sDefalut){
+        if(CommonObject.isNull(sParam))
+            return sDefalut;
+        else
+            return sParam;
+    }
     , isNotNull: function (_param) {
         return !this.isNull(_param);
     }
     , error: function (msg) {
         alert(msg);
         throw(msg);
+    }
+    , getQueryParam(key) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(key);
     }
     , eventBind: function (screenObj) {
         var screenId = screenObj;
@@ -49,12 +59,12 @@ var Common = {
     }
     , ajaxTransaction: function (_param) {
         return new Promise(function (resolve, reject) {
-            if (Common.isNull(_param)) {
-                Common.error("param is null");
+            if (CommonObject.isNull(_param)) {
+                CommonObject.error("param is null");
             }
 
-            if (Common.isNull(_param.url)) {
-                Common.error('url is null');
+            if (CommonObject.isNull(_param.url)) {
+                CommonObject.error('url is null');
             }
 
             var reqUrl = _param.url
@@ -63,6 +73,8 @@ var Common = {
                 url: reqUrl
                 , type: "POST"
                 , async: false
+                , data          : JSON.stringify(_param.data)
+                , contentType   : 'application/json; charset=utf-8'
                 , success: function (resData) {
                     resolve(resData);
                 }
@@ -71,6 +83,43 @@ var Common = {
                 }
             });
         });
+    }
+    , makeInputData(oSearchArea, inputData, prefix, nullOk, sObj) {
+        if( CommonObject.isNull(inputData) ){
+            inputData = new Object();
+        }
+
+        if(CommonObject.isNull(sObj)){
+            sObj = $('#f-content');
+        }
+
+        // 검색 시작날짜, 종료날짜 설정
+        // oSearchArea.find('input[name="datetimes"]').each(function(i){
+        //     var preFixId = $(this).attr('id');
+        //     $('#'+preFixId+'_S_DT').val($(this).getStartDate());
+        //     $('#'+preFixId+'_E_DT').val($(this).getEndDate());
+        // });
+
+        // 시작시간, 종료시간 설정
+        // oSearchArea.find('div[name="timepicker"]').each(function(i){
+        //     var preFixId = $(this).attr('id');
+        //     $('#'+preFixId+'_S_DTM').val($(this).getStartRange());
+        //     $('#'+preFixId+'_E_DTM').val($(this).getEndRange());
+        // });
+
+        inputData = $.extend(inputData, oSearchArea.fn_getInputdata(prefix, nullOk));
+
+        // oSearchArea.find('input:text[numberOnly]').each(function(i){
+        //     inputData[$(this).attr('id')] = BoAlarmCommon.number.removeCommmas($(this).val());
+        // });
+
+        // 검색영역 외에 추가되어야 할 항목들.
+        // if($('#pageRowCnt', sObj).length > 0){
+        //     inputData["pageRowCnt"] = $('#pageRowCnt', sObj).val();
+        // }
+        //-- 검색영역 외에 추가되어야 할 항목들.
+
+        return inputData;
     }
     , setDetails : function (oJsonObj, pArea) {
         var objs = null;
@@ -298,3 +347,77 @@ var Common = {
         try{changeContentSize();}catch(e){}
     }
 };
+
+
+$.fn.fn_getInputdata = function(prefix, nullOk){
+    prefix = CommonObject.NVL(prefix, "");
+    nullOk = CommonObject.NVL(nullOk, false);
+    var data = {};
+    var setVal = function(obj){
+        //var id = (gfn_isNull(obj.attr('name')))? obj.attr('id'):obj.attr('name');
+        var id = obj.attr('id');
+        var name = obj.attr('name');
+        if(obj.attr('type') == 'radio'){
+            id = (CommonObject.isNull(obj.attr('name')))? obj.attr('id'):obj.attr('name');
+        }
+        var val = obj.val();
+
+        if(nullOk){
+            if(!CommonObject.isNull(id)){
+                if(obj.attr('type') == 'checkbox'){
+                    val = ($(obj).attr('checked')) ? "Y" : "N";
+                    //data[prefix + name] = $.extend({(prefix + id) : val}, data[prefix + name]);
+                    var tData = {};
+                    var cd = CommonObject.string.replaceAll(id, name+'_', '');
+                    tData[cd] = val;
+                    data[prefix + name] = $.extend(tData, CommonObject.NVL(data[prefix + name], {}));
+                    if("Y" == val){
+                        if(CommonObject.isNull(data[prefix + name].CHECKLIST)){
+                            data[prefix + name]['CHECKLIST'] = new Array();
+                        }
+                        data[prefix + name].CHECKLIST.push(cd);
+                    }
+                }
+                else{
+                    data[prefix + id] = CommonObject.NVL(val, "");
+                }
+            }
+        }
+        else{
+            if(!CommonObject.isNull(val) && !CommonObject.isNull(id)){
+                if(obj.attr('type') == 'checkbox'){
+                    val = ($(obj).attr('checked')) ? "Y" : "N";
+                    var tData = {};
+                    var cd = CommonObject.string.replaceAll(id, name+'_', '');
+                    tData[cd] = val;
+                    data[prefix + name] = $.extend(tData, CommonObject.NVL(data[prefix + name], {}));
+                    if("Y" == val){
+                        if(CommonObject.isNull(data[prefix + name].CHECKLIST)){
+                            data[prefix + name]['CHECKLIST'] = new Array();
+                        }
+                        data[prefix + name].CHECKLIST.push(cd);
+                    }
+                }
+                else{
+                    data[prefix + id] = val;
+                }
+            }
+            else if(CommonObject.isNull(val) && !CommonObject.isNull(id)){
+                data[prefix + id] = '';
+            }
+        }
+    };
+
+    $(this).find('input,select,combo,textarea').each(function(i){
+//		if($(this).attr('type') == 'checkbox' || $(this).attr('type') == 'radio'){
+        if($(this).attr('type') == 'radio'){
+            if($(this).attr('checked')){
+                setVal($(this));
+            }
+        }else{
+            setVal($(this));
+        }
+    });
+
+    return data;
+}

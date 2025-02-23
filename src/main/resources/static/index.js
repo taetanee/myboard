@@ -1,4 +1,4 @@
-var indexPage = $.extend({}, Common);
+var indexPage = $.extend({}, CommonObject);
 
 indexPage.init = function () {
 

@@ -1,7 +1,7 @@
 package com.web.common.controller;
 
 import com.web.common.MyException;
-import com.web.common.CommonResVO;
+import com.web.common.CommonResponse;
 import com.web.common.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 public class ExceptionErrorController {
     @ExceptionHandler({	Exception.class })
     public ResponseEntity<?> exception(final Exception ex, ServletWebRequest servletRequest, HttpServletRequest request) {
-        CommonResVO commonResVO = new CommonResVO();
+        CommonResponse commonResVO = new CommonResponse();
 
         if(ex instanceof HttpRequestMethodNotSupportedException){
             log.warn("[warn] URI : " + request.getRequestURI() + " / exception e = " , ex);

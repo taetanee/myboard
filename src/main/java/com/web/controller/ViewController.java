@@ -15,23 +15,23 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 public class ViewController {
 
-    @GetMapping(value = {"","index"})
+    @GetMapping(value = {"","/index"})
     public Object index(Model model, HttpServletRequest request) {
-        return "index";
+        return "/index";
     }
 
-    @GetMapping("dev/devThis")
+    @GetMapping("/dev/devThis")
     public Object devThis(Model model, HttpServletRequest request) {
-        return "dev/devThis";
+        return "/dev/devThis";
     }
 
-    @GetMapping("dev/exceptionTest")
+    @GetMapping("/dev/exceptionTest")
     public Object exceptionTest(Model model, HttpServletRequest request) {
-        return "dev/exceptionTest";
+        return "/dev/exceptionTest";
     }
 
-    @GetMapping("dev/clipboard")
+    @GetMapping("/clipboard")
     public Object clipboard(Model model, HttpServletRequest request) {
-        return "dev/clipboard";
+        return "/clipboard";
     }
 }

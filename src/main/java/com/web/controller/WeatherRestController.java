@@ -1,7 +1,7 @@
 package com.web.controller;
 
 import com.web.common.MyException;
-import com.web.common.CommonResVO;
+import com.web.common.CommonResponse;
 import com.web.service.WeatherService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class WeatherRestController {
 
 	@PostMapping("/getShortWeather")
 	public ResponseEntity<?> getShortWeather(HashMap<String,Object> param) throws Exception {
-		CommonResVO response = new CommonResVO();
+		CommonResponse response = new CommonResponse();
 		ArrayList result = null;
 		try {
 			result = weatherService.getShortWeather(param);

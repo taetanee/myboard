@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.common.CommonResVO;
+import com.web.common.CommonResponse;
 import com.web.common.MyException;
 import com.web.service.CovidService;
 import io.swagger.annotations.Api;
@@ -25,7 +25,7 @@ public class CovidRestController {
 
 	@PostMapping("/getCovid")
 	public ResponseEntity<?> getCovid(HashMap<String,Object> param) throws Exception {
-		CommonResVO response = new CommonResVO();
+		CommonResponse response = new CommonResponse();
 		ArrayList result = null;
 		try {
 			result = covidService.getCovid(param);

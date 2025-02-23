@@ -1,7 +1,7 @@
 package com.web.controller;
 
 import com.web.common.MyException;
-import com.web.common.CommonResVO;
+import com.web.common.CommonResponse;
 import com.web.service.CommonService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class CommonRestController {
 
     @PostMapping("/getUuid")
     public ResponseEntity<?> getUuid(){
-        CommonResVO response = new CommonResVO();
+        CommonResponse response = new CommonResponse();
         HashMap<String,Object> result = commonService.getUuid();
         response.setResult(result);
         return ResponseEntity.ok(response);

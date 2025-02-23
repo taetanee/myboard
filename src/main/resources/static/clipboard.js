@@ -1,14 +1,26 @@
-var clipboardPage = $.extend({}, Common);
+var clipboardPage = $.extend({}, CommonObject);
+
+clipboardPage.variable = {
+    sendData: {}
+    , detailData: {}
+}
+
 
 clipboardPage.init = function () {
     clipboardPage.eventBind('clipboardPage');
 
-    clipboardPage.location.getRandomWord();
+    if (CommonObject.isNull(CommonObject.getQueryParam('url'))) {
+        clipboardPage.location.getRandomWord();
+    } else {
+        CommonObject.setDetails({"randomWord": CommonObject.getQueryParam('url')}, $(".container"));
+        clipboardPage.location.getContent();
+    }
 }
 
 clipboardPage.events = {
     'click #copyBtn': 'clipboardPage.event.clickedCopyBtn'
     , 'click #shareBtn': 'clipboardPage.event.clickedShareBtn'
+    , 'click #saveBtn': 'clipboardPage.event.clickedSaveBtn'
 }
 
 clipboardPage.event.clickedCopyBtn = function () {
@@ -42,8 +54,32 @@ clipboardPage.location.getRandomWord = function () {
         const obj = {
             "randomWord" :  randomWord
         }
-        Common.setDetails(obj, $(".container"));
+        CommonObject.setDetails(obj, $(".container"));
         history.pushState(null, null, '?url='+randomWord);
+    });
+}
+
+clipboardPage.location.getContent = function () {
+    var param = {
+        url: "/onlineClipboard/getContent"
+        , data : clipboardPage.makeInputData($(".container"), clipboardPage.variable.sendData)
+    };
+    clipboardPage.ajaxTransaction(param).then(function (result) {
+        const content = result.result;
+        const obj = {
+            "content" :  content.data
+        }
+        CommonObject.setDetails(obj, $(".container"));
+    });
+}
+
+clipboardPage.event.clickedSaveBtn = function () {
+    var param = {
+        url: "/onlineClipboard/saveContent"
+        , data : clipboardPage.makeInputData($(".container"), clipboardPage.variable.sendData)
+    };
+    clipboardPage.ajaxTransaction(param).then(function (result) {
+        alert('content save completed(내용 저장 완료)');//TODO : 토스트 메세지로 구현하기
     });
 }
 
