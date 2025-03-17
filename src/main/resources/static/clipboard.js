@@ -18,9 +18,29 @@ clipboardPage.init = function () {
 }
 
 clipboardPage.events = {
-    'click #copyBtn': 'clipboardPage.event.clickedCopyBtn'
-    , 'click #shareBtn': 'clipboardPage.event.clickedShareBtn'
-    , 'click #saveBtn': 'clipboardPage.event.clickedSaveBtn'
+    'click #fileUploadBtn'      : 'clipboardPage.event.clickedFileUploadBtn'
+    , 'click #fileDownloadBtn'  : 'clipboardPage.event.clickedFileDownloadBtn'
+    , 'click #copyBtn'          : 'clipboardPage.event.clickedCopyBtn'
+    , 'click #shareBtn'         : 'clipboardPage.event.clickedShareBtn'
+    , 'click #saveBtn'          : 'clipboardPage.event.clickedSaveBtn'
+}
+
+clipboardPage.event.clickedFileUploadBtn = function () {
+    const obj = {
+        fileInputId: "fileInput"
+        , fileListId: "fileList"
+        , uploadUrl: "/onlineClipboard/upload"
+        , fileParamName: "file"
+    }
+    clipboardPage.fileUpload(obj)
+}
+
+clipboardPage.event.clickedFileDownloadBtn = function () {
+    const obj = {
+        fileName: "x.txt"
+        , downloadUrl: "/onlineClipboard/download"
+    }
+    clipboardPage.fileDownload(obj);
 }
 
 clipboardPage.event.clickedCopyBtn = function () {

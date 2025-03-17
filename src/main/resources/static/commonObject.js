@@ -20,9 +20,6 @@ var CommonObject = {
         else
             return sParam;
     }
-    , isNotNull: function (_param) {
-        return !this.isNull(_param);
-    }
     , error: function (msg) {
         alert(msg);
         throw(msg);
@@ -121,6 +118,47 @@ var CommonObject = {
 
         return inputData;
     }
+    , fileUpload: function (obj) {
+        const fileInput = document.getElementById(obj.fileInputId || "fileInput");
+        const fileList = document.getElementById(obj.fileListId || "fileList");
+        const uploadUrl = obj.uploadUrl || "/upload";
+
+        if (fileInput.files.length === 0) {
+            alert("파일을 선택하세요.");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const listItem = document.createElement("li");
+        listItem.textContent = `업로드된 파일: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+        fileList.appendChild(listItem);
+
+        // 파일 업로드를 서버로 전송하는 코드 (예제)
+        const formData = new FormData();
+        formData.append(obj.fileParamName || "file", file);
+
+        fetch(uploadUrl, {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => alert("파일 업로드 성공!"))
+            .catch(error => alert("파일 업로드 실패: " + error));
+    }
+    , fileDownload : function (obj) {
+        if (!obj.fileName) {
+            alert("파일명이 필요합니다.");
+            return;
+        }
+
+        const link = document.createElement("a");
+        link.href = `${obj.downloadUrl || "/download"}?fileName=${encodeURIComponent(obj.fileName)}`;
+        link.setAttribute("download", obj.fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     , setDetails : function (oJsonObj, pArea) {
         var objs = null;
         if(this.isNull(pArea))
