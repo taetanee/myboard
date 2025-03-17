@@ -106,6 +106,7 @@ public class OnlineClipboardService {
 			Resource resource = new UrlResource(filePath.toUri());
 
 			if (!resource.exists()) {
+				//FIXME : 파일이 있는데, 이 조건문으로 떨어짐
 				return ResponseEntity.notFound().build();
 			}
 
