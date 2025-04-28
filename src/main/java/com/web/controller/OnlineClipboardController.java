@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 
-@Api(tags="날씨 컨트롤러")
+@Api(tags="온라인 클립보드")
 @RestController
 @RequestMapping("/onlineClipboard")
 @Slf4j

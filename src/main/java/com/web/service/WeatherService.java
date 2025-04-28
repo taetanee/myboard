@@ -1,32 +1,29 @@
 package com.web.service;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.web.common.util.APIUtil;
-import com.web.common.Const;
 import com.web.common.util.CommonUtil;
 import com.web.common.util.RedisUtil;
-import com.web.dto.ShortWeatherDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.stereotype.Service;;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+
+;
 
 @Slf4j
 @Service
 public class WeatherService {
-
-	@Autowired
-	private APIUtil apiUtil;
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -40,107 +37,78 @@ public class WeatherService {
 	@Autowired
 	private CommonUtil commonUtil;
 
+	private static String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
 
-	public ArrayList getShortWeather(HashMap<String,Object> _param) throws Exception{
-		ArrayList result = new ArrayList();
+	public String getMinuDustFrcstDspth(HashMap<String, Object> _param) throws Exception {
 
-		//[시작] 기본값 세팅
-		HashMap<String,Object> param = (HashMap<String, Object>) _param.clone();
-		if(param.get("nx") == null || param.get("ny") == null){
-			param.put("nx", Const.NX);
-			param.put("ny", Const.NY);
-		}
-		if(param.get("base_date") == null){
-			param.put("baseDate", commonUtil.getMinusOneHour(commonUtil.getNow()).substring(0,8));
-		}
-		if(param.get("base_time") == null){
-			param.put("baseTime", commonUtil.getMinusOneHour(commonUtil.getNow()).substring(9,11) + "00");
-		}
-		String key = "shortWeather" + "_" + param.get("baseDate") +"_" + param.get("baseTime") + "_" + param.get("nx") + "_" + param.get("ny");
-		//[종료] 기본값 세팅
+		String result = "";
 
-		//[시작] redis에서 데이터 가져오기
-		Set redisData = redisUtil.getSets(key);
-		if (false && redisData.size() != 0) {
-			for( Object item :  redisData ){
-				Gson gson = new Gson();
-				ShortWeatherDTO jsonObject = gson.fromJson((String) item, ShortWeatherDTO.class);
-				result.add(jsonObject);
+		//[시작] 하루 빼기
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1); // 하루 빼기
+		String searchDate = sdf.format(cal.getTime());
+		//[종료] 하루 빼기
+
+		//[시작] API 호출
+		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMinuDustFrcstDspth"); /*URL*/
+		urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey); /*Service Key*/
+		urlBuilder.append("&" + URLEncoder.encode("returnType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*xml 또는 json*/
+		urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("100", "UTF-8")); /*한 페이지 결과 수(조회 날짜로 검색 시 사용 안함)*/
+		urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호(조회 날짜로 검색 시 사용 안함)*/
+		urlBuilder.append("&" + URLEncoder.encode("searchDate", "UTF-8") + "=" + URLEncoder.encode(searchDate, "UTF-8"));
+		urlBuilder.append("&" + URLEncoder.encode("InformCode", "UTF-8") + "=" + URLEncoder.encode("PM10", "UTF-8")); /*통보코드검색(PM10, PM25, O3)*/
+		URL url = new URL(urlBuilder.toString());
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.setRequestProperty("Content-type", "application/json");
+		System.out.println("Response code: " + conn.getResponseCode());
+		BufferedReader rd;
+		if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+			rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		} else {
+			rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+		}
+		StringBuilder sb = new StringBuilder();
+		String line;
+		while ((line = rd.readLine()) != null) {
+			sb.append(line);
+		}
+		rd.close();
+		conn.disconnect();
+		System.out.println(sb.toString());
+		//[종료] API 호출
+
+		//[시작] 값 가져오기
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode = objectMapper.readTree(sb.toString());
+		JsonNode items = rootNode.path("response").path("body").path("items");
+
+		// 가장 최신 날짜 구하기
+		String latestDate = "";
+		for (JsonNode item : items) {
+			String informData = item.path("informData").asText();
+			if (informData.compareTo(latestDate) > 0) {
+				latestDate = informData;
 			}
-			return result;
 		}
-		//[종료] redis에서 데이터 가져오기
 
-		//[시작] mongo에서 데이터 가져오기
-		List<ShortWeatherDTO> mongoData = this.findMongoShortWeather(param);
-		if (mongoData.size() != 0) {
-			for(int i=0;i<mongoData.size();i++){
-				ShortWeatherDTO item = mongoData.get(i);
-				result.add(item);
+		// 최신 날짜에 해당하는 서울 값 가져오기
+		for (JsonNode item : items) {
+			if (latestDate.equals(item.path("informData").asText())) {
+				String informGrade = item.path("informGrade").asText();
+				for (String regionData : informGrade.split(",")) {
+					if (regionData.startsWith("서울")) {
+						result = regionData.split(":")[1].trim();
+						break;
+					}
+				}
+				break;
 			}
-			return result;
 		}
-		//[종료] mongo에서 데이터 가져오기
+		//[종료] 값 가져오기
 
-		//[시작] API에서 데이터 가져오기
-		HashMap<String,Object> apiDataTemp = apiUtil.callAPIShortWeather(param);
-		ArrayList apiData = apiUtil.getItem(apiDataTemp);
-		//[종료] API에서 데이터 가져오기
-
-		//[시작] save redis
-		if (redisData.size() == 0) {
-			this.saveRedisShortWeather(key, apiData);
-		}
-		//[종료] save redis
-
-		//[시작] save mongo
-		if (mongoData.size() == 0) {
-			this.saveMongoShortWeather(apiData);
-		}
-		//[종료] save mongo
-
-		return apiData;
-	}
-
-
-	public void saveMongoShortWeather(ArrayList arrayList) throws Exception {
-		for (int i = 0; i < arrayList.size(); i++) {
-			HashMap rawData = (HashMap) arrayList.get(i);
-			mongoTemplate.save(
-					new ShortWeatherDTO(
-							(String) rawData.get("baseDate")
-							, (String) rawData.get("baseTime")
-							, (String) rawData.get("category")
-							, (int) rawData.get("nx")
-							, (int) rawData.get("ny")
-							, (String) rawData.get("obsrValue")
-					)
-			);
-		}
-	}
-
-	public List<ShortWeatherDTO> findMongoShortWeather(HashMap<String,Object> _param){
-		HashMap<String,Object> param = (HashMap<String, Object>) _param.clone();
-
-		Query query = new Query()
-				.addCriteria(Criteria.where("baseDate").is(param.get("baseDate")))
-				.addCriteria(Criteria.where("baseTime").is(param.get("baseTime")))
-				//.addCriteria(Criteria.where("category").is("RN1"))
-				.addCriteria(Criteria.where("nx").is(param.get("nx")))
-				.addCriteria(Criteria.where("ny").is(param.get("ny")))
-				.limit(999999999)
-				.with(Sort.by(Sort.Direction.DESC, "_id"));
-
-		List<ShortWeatherDTO> shortWeatherDTO = mongoTemplate.find(query.with(Sort.by(Sort.Direction.DESC, "_id")), ShortWeatherDTO.class);
-		return shortWeatherDTO;
-	}
-
-
-	public void saveRedisShortWeather(String key, ArrayList arrayList) throws Exception {
-		for (int i = 0; i < arrayList.size(); i++) {
-			HashMap rawData = (HashMap) arrayList.get(i);
-			redisUtil.setSets(key, objectMapper.writeValueAsString(rawData));
-		}
+		return result;
 	}
 
 }
