@@ -20,8 +20,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 
 ;
 
@@ -137,5 +140,99 @@ public class WeatherService {
 		}
 	}
 
+
+	public Map<String, Object> getCurrentSeoulWeather() throws Exception {
+		// [1] base_date, base_time 계산
+		String[] baseTimes = { "0200", "0500", "0800", "1100", "1400", "1700", "2000", "2300" };
+		LocalDateTime now = LocalDateTime.now();
+		String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String baseTime = baseTimes[0];
+
+		for (int i = baseTimes.length - 1; i >= 0; i--) {
+			int hour = Integer.parseInt(baseTimes[i].substring(0, 2));
+			if (now.getHour() >= hour) {
+				baseTime = baseTimes[i];
+				break;
+			}
+		}
+		if (now.getHour() < 2) {
+			baseDate = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+			baseTime = "2300";
+		}
+
+		// [2] API 요청
+		String nx = "60"; // 서울 X
+		String ny = "127"; // 서울 Y
+		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst");
+		urlBuilder.append("?").append(URLEncoder.encode("serviceKey", "UTF-8")).append("=").append(serviceKey);
+		urlBuilder.append("&").append(URLEncoder.encode("pageNo", "UTF-8")).append("=1");
+		urlBuilder.append("&").append(URLEncoder.encode("numOfRows", "UTF-8")).append("=100");
+		urlBuilder.append("&").append(URLEncoder.encode("dataType", "UTF-8")).append("=JSON");
+		urlBuilder.append("&").append(URLEncoder.encode("base_date", "UTF-8")).append("=").append(baseDate);
+		urlBuilder.append("&").append(URLEncoder.encode("base_time", "UTF-8")).append("=").append(baseTime);
+		urlBuilder.append("&").append(URLEncoder.encode("nx", "UTF-8")).append("=").append(nx);
+		urlBuilder.append("&").append(URLEncoder.encode("ny", "UTF-8")).append("=").append(ny);
+
+		URL url = new URL(urlBuilder.toString());
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+
+		BufferedReader rd = (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300)
+				? new BufferedReader(new InputStreamReader(conn.getInputStream()))
+				: new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+
+		StringBuilder sb = new StringBuilder();
+		String line;
+		while ((line = rd.readLine()) != null) sb.append(line);
+		rd.close();
+		conn.disconnect();
+
+		// [3] JSON 파싱
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode items = mapper.readTree(sb.toString()).path("response").path("body").path("items").path("item");
+
+		double temperature = -999;
+		int rainType = -1;
+
+		for (JsonNode item : items) {
+			String category = item.path("category").asText();
+			String value = item.path("obsrValue").asText();
+
+			if ("T1H".equals(category)) {
+				temperature = Double.parseDouble(value);
+			} else if ("PTY".equals(category)) {
+				rainType = Integer.parseInt(value);
+			}
+		}
+
+		// [4] 강수 텍스트/설명 정의
+		String rainText;
+		String rainDesc;
+		switch (rainType) {
+			case 0: rainText = "없음"; rainDesc = "비가 오지 않음"; break;
+			case 1: rainText = "비"; rainDesc = "비가 내림"; break;
+			case 2: rainText = "비/눈"; rainDesc = "비와 눈이 섞여 내림"; break;
+			case 3: rainText = "눈"; rainDesc = "눈이 내림"; break;
+			case 4: rainText = "소나기"; rainDesc = "소나기가 내림"; break;
+			default: rainText = "알 수 없음"; rainDesc = "날씨 상태를 알 수 없음";
+		}
+
+		// [5] 응답 구성
+		Map<String, Object> response = new HashMap<>();
+		response.put("location", "서울");
+
+		Map<String, Object> tempMap = new HashMap<>();
+		tempMap.put("value", temperature);
+		tempMap.put("unit", "°C");
+
+		Map<String, Object> rainMap = new HashMap<>();
+		rainMap.put("type", rainText);
+		rainMap.put("description", rainDesc);
+
+		response.put("temperature", tempMap);
+		response.put("precipitation", rainMap);
+
+		return response;
+	}
 
 }
