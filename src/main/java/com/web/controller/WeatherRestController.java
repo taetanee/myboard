@@ -26,4 +26,13 @@ public class WeatherRestController {
 		String result = weatherService.getMinuDustFrcstDspth(new HashMap<>());
 		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(result);
 	}
+
+
+	@GetMapping("/getSnp500CurrentPrice")
+	public ResponseEntity<String> getSnp500CurrentPrice() throws Exception {
+		double result = weatherService.getSnp500CurrentPrice();
+		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(String.valueOf(result));
+	}
+
+
 }

@@ -6,9 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.web.common.util.CommonUtil;
 import com.web.common.util.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -36,6 +40,8 @@ public class WeatherService {
 
 	@Autowired
 	private CommonUtil commonUtil;
+
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	private static String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
 
@@ -110,5 +116,26 @@ public class WeatherService {
 
 		return result;
 	}
+
+	public double getSnp500CurrentPrice() {
+		try {
+			Document doc = Jsoup.connect("https://finance.yahoo.com/quote/%5EGSPC")
+					.userAgent("Mozilla/5.0")
+					.get();
+
+			Element priceEl = doc.selectFirst("fin-streamer[data-field=regularMarketPrice]");
+			if (priceEl != null) {
+				String priceText = priceEl.text().replace(",", "").trim();
+				if (!priceText.isEmpty()) {
+					return Double.parseDouble(priceText);
+				}
+			}
+
+			throw new RuntimeException("현재 가격을 찾을 수 없습니다.");
+		} catch (Exception e) {
+			throw new RuntimeException("현재 가격 추출 실패", e);
+		}
+	}
+
 
 }
