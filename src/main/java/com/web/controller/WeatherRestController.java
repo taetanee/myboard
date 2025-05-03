@@ -38,13 +38,19 @@ public class WeatherRestController {
 	@GetMapping("/getCurrentWeather")
 	public ResponseEntity<Map<String, Object>> getCurrentWeather() {
 		try {
-			Map<String, Object> weather = weatherService.getCurrentSeoulWeather();
-			return ResponseEntity.ok(weather);
+			Map<String, Object> result = weatherService.getCurrentSeoulWeather();
+			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			Map<String, Object> error = new HashMap<>();
 			error.put("error", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 		}
+	}
+
+	@GetMapping("/getExchangeRateUSDToKRW")
+	public ResponseEntity<String> getExchangeRateUSDToKRW() throws Exception {
+		double result = weatherService.getExchangeRateUSDToKRW();
+		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(String.valueOf(result));
 	}
 
 

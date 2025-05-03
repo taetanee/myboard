@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
@@ -233,6 +234,27 @@ public class WeatherService {
 		response.put("precipitation", rainMap);
 
 		return response;
+	}
+
+
+	public double getExchangeRateUSDToKRW() throws Exception {
+
+		try {
+			String url = "https://finance.naver.com/marketindex/exchangeList.naver";
+			Document doc = Jsoup.connect(url).get();
+
+			Elements rows = doc.select("table.tbl_exchange tbody tr");
+			for (Element row : rows) {
+				String currencyName = row.select("td.tit").text();
+				if (currencyName.contains("미국 USD")) {
+					String rateText = row.select("td.sale").text().replace(",", "");
+					return Double.parseDouble(rateText);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
 	}
 
 }
