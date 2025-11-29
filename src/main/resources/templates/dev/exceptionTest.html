@@ -11,12 +11,12 @@
 
 <th:block layout:fragment="script">
   <script>
-    var indexPage = $.extend({}, CommonObject);
+    var indexPage = CommonObject.clone();
 
     var param = {
       url : "/exceptionTest"
     }
-    var result = indexPage.ajaxTransaction(param);
+    var result = indexPage.ajax(param);
     $("#content").html(result);
   </script>
 </th:block>

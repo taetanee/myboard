@@ -1,10 +1,8 @@
-var indexPage = $.extend({}, CommonObject);
+var indexPage = CommonObject.clone();
 
 indexPage.init = function () {
 
     indexPage.location.getShortWeather();
-
-    indexPage.location.getCovid();
 }
 
 indexPage.location.getCurrentPosition = function () {
@@ -14,16 +12,6 @@ indexPage.location.getCurrentPosition = function () {
             , longitude: pos.coords.longitude
         }
         return result;
-    });
-}
-
-indexPage.location.getCovid = function () {
-
-    var param = {
-        url: "/covid/getCovid"
-    }
-    indexPage.ajaxTransaction(param).then(function (result) {
-        $("#covid").text(JSON.stringify(result));
     });
 }
 
@@ -44,7 +32,7 @@ indexPage.location.getShortWeather = function () {
         , ny: currentPosition.longitude
     }
 
-    indexPage.ajaxTransaction(param).then(function (result) {
+    indexPage.ajax(param).then(function (result) {
         var item = result.result
         item.forEach((item, index) => {
             switch (item.category) {

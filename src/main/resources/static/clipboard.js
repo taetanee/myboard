@@ -1,4 +1,4 @@
-var clipboardPage = $.extend({}, CommonObject);
+var clipboardPage = CommonObject.clone();
 
 clipboardPage.variable = {
     sendData: {}
@@ -9,10 +9,10 @@ clipboardPage.variable = {
 clipboardPage.init = function () {
     clipboardPage.eventBind('clipboardPage');
 
-    if (CommonObject.isNull(CommonObject.getQueryParam('url'))) {
+    if (CommonObject.isNull(CommonObject.getUrlParams('url'))) {
         clipboardPage.location.getRandomWord();
     } else {
-        CommonObject.setDetails({"randomWord": CommonObject.getQueryParam('url')}, $(".container"));
+        CommonObject.setDetails({"randomWord": CommonObject.getUrlParams('url')}, $(".container"));
         clipboardPage.location.getContent();
     }
 }
@@ -69,7 +69,7 @@ clipboardPage.location.getRandomWord = function () {
     var param = {
         url: "/onlineClipboard/getRandomWord"
     };
-    clipboardPage.ajaxTransaction(param).then(function (result) {
+    clipboardPage.ajax(param).then(function (result) {
         const randomWord = result.result;
         const obj = {
             "randomWord" :  randomWord
@@ -84,7 +84,7 @@ clipboardPage.location.getContent = function () {
         url: "/onlineClipboard/getContent"
         , data : clipboardPage.makeInputData($(".container"), clipboardPage.variable.sendData)
     };
-    clipboardPage.ajaxTransaction(param).then(function (result) {
+    clipboardPage.ajax(param).then(function (result) {
         const content = result.result;
         const obj = {
             "content" :  content.data
@@ -98,7 +98,7 @@ clipboardPage.event.clickedSaveBtn = function () {
         url: "/onlineClipboard/saveContent"
         , data : clipboardPage.makeInputData($(".container"), clipboardPage.variable.sendData)
     };
-    clipboardPage.ajaxTransaction(param).then(function (result) {
+    clipboardPage.ajax(param).then(function (result) {
         alert('content save completed(내용 저장 완료)');//TODO : 토스트 메세지로 구현하기
     });
 }
