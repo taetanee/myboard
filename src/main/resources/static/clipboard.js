@@ -54,14 +54,14 @@ clipboardPage.event.clickedShareBtn = function () {
 clipboardPage.location.copyContent = function () {
     const val = $("#content").val();
     window.navigator.clipboard.writeText(val).then(() => {
-        alert('Content copy completed(내용복사완료)');//TODO : 토스트 메세지로 구현하기
+        CommonObject.toast('Content copy completed(내용복사완료)');
     });
 }
 
 clipboardPage.location.shareURL = function () {
     const val = window.location.href;
     window.navigator.clipboard.writeText(val).then(() => {
-        alert('URL copy completed(URL복사완료)');//TODO : 토스트 메세지로 구현하기
+        CommonObject.toast('URL copy completed(URL복사완료)');
     });
 }
 
@@ -99,7 +99,7 @@ clipboardPage.event.clickedSaveBtn = function () {
         , data : clipboardPage.makeInputData($(".container"), clipboardPage.variable.sendData)
     };
     clipboardPage.ajax(param).then(function (result) {
-        alert('content save completed(내용 저장 완료)');//TODO : 토스트 메세지로 구현하기
+        CommonObject.toast('content save completed(내용 저장 완료)');
     });
 }
 
