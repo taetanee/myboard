@@ -41,6 +41,10 @@ public class OnlineClipboardService {
 
 	private static final String UPLOAD_DIR = "C:/uploads/";
 
+	private static final String FILED_NAME_RANDOM_WORD = "randomWord";
+
+	private static final String FILED_NAME_KEY_CONTENT = "content";
+
 	public String getRandomWord() throws Exception {
 		String result = new String();
 		result = commonUtil.getUUID(3);
@@ -49,11 +53,15 @@ public class OnlineClipboardService {
 
 	public String saveContent(HashMap<String,Object> param) throws Exception {
 		String result = new String();
-		String keyContent = "content";
+		String keyContent = FILED_NAME_KEY_CONTENT;
 		String dataContent = (String) param.get(keyContent);
 
-		String keyUrl = "randomWord";
+		String keyUrl = FILED_NAME_RANDOM_WORD;
 		String urlData = (String) param.get(keyUrl);
+
+		if( urlData == null ){
+			urlData = "";
+		}
 
 		if (dataContent == null ){
 			throw new MyException(Const.NOT_INVALID_PARAM_ERROR);
@@ -67,8 +75,12 @@ public class OnlineClipboardService {
 		HashMap<Object,Object> result = new HashMap<>();
 		String resultx = new String();
 
-		String keyUrl = "randomWord";
+		String keyUrl = FILED_NAME_RANDOM_WORD;
 		String urlData = (String) param.get(keyUrl);
+
+		if( urlData == null ){
+			urlData = "";
+		}
 
 		resultx = redisUtil.getValues(urlData);
 		result.put("data",resultx);
