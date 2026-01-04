@@ -121,24 +121,41 @@ public class MyDashboardService {
 		return result;
 	}
 
-	public double getSnp500CurrentPrice() {
+	public Map<String, Object> getSnp500CurrentPrice() {
+		Map<String, Object> result = new HashMap<>();
 		try {
+			// 야후 파이낸스 S&P 500 페이지
 			Document doc = Jsoup.connect("https://finance.yahoo.com/quote/%5EGSPC")
-					.userAgent("Mozilla/5.0")
+					.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 					.get();
 
+			// 1. 현재 지수 (Price)
 			Element priceEl = doc.selectFirst("fin-streamer[data-field=regularMarketPrice]");
-			if (priceEl != null) {
-				String priceText = priceEl.text().replace(",", "").trim();
-				if (!priceText.isEmpty()) {
-					return Double.parseDouble(priceText);
-				}
+			// 2. 등락값 (Change)
+			Element changeEl = doc.selectFirst("fin-streamer[data-field=regularMarketChange]");
+			// 3. 등락율 (Percent Change)
+			Element percentEl = doc.selectFirst("fin-streamer[data-field=regularMarketChangePercent]");
+
+			if (priceEl != null && changeEl != null && percentEl != null) {
+				String price = priceEl.text();
+				String change = changeEl.text();
+				String percent = percentEl.text().replace("(", "").replace(")", ""); // 괄호 제거
+
+				result.put("price", price);
+				result.put("change", change);
+				result.put("percent", percent);
+				// 등락값이 "-"로 시작하지 않으면 상승으로 판단
+				result.put("isUp", !change.startsWith("-"));
 			}
 
-			throw new RuntimeException("현재 가격을 찾을 수 없습니다.");
 		} catch (Exception e) {
-			throw new RuntimeException("현재 가격 추출 실패", e);
+			System.err.println("S&P 500 크롤링 실패: " + e.getMessage());
+			result.put("price", "0.00");
+			result.put("change", "0.00");
+			result.put("percent", "0.00%");
+			result.put("isUp", true);
 		}
+		return result;
 	}
 
 

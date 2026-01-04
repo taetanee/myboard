@@ -30,9 +30,15 @@ public class MyDashboardRestController {
 	}
 
 	@GetMapping("/getSnp500CurrentPrice")
-	public ResponseEntity<String> getSnp500CurrentPrice() throws Exception {
-		double result = myDashboardService.getSnp500CurrentPrice();
-		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(String.valueOf(result));
+	public ResponseEntity<Map<String, Object>> getSnp500CurrentPrice() throws Exception {
+		try {
+			Map<String, Object> result = myDashboardService.getSnp500CurrentPrice();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
 	}
 
 	@GetMapping("/getCurrentWeather")
