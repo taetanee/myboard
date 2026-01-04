@@ -48,9 +48,16 @@ public class WeatherRestController {
 	}
 
 	@GetMapping("/getExchangeRateUSDToKRW")
-	public ResponseEntity<String> getExchangeRateUSDToKRW() throws Exception {
-		double result = weatherService.getExchangeRateUSDToKRW();
-		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(String.valueOf(result));
+	public ResponseEntity<Map<String, Object>> getExchangeRateUSDToKRW() throws Exception {
+
+		try {
+			Map<String, Object> result = weatherService.getExchangeRateUSDToKRW();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
 	}
 
 
