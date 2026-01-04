@@ -237,21 +237,35 @@ public class WeatherService {
 	}
 
 
-	public double getExchangeRateUSDToKRW() throws Exception {
-
+	public double getExchangeRateUSDToKRW() {
 		try {
-			String url = "https://finance.naver.com/marketindex/exchangeList.naver";
-			Document doc = Jsoup.connect(url).get();
+			// 인베스팅닷컴 USD/KRW 주소
+			String url = "https://kr.investing.com/currencies/usd-krw";
 
-			Elements rows = doc.select("table.tbl_exchange tbody tr");
-			for (Element row : rows) {
-				String currencyName = row.select("td.tit").text();
-				if (currencyName.contains("미국 USD")) {
-					String rateText = row.select("td.sale").text().replace(",", "");
+			// 브라우저인 것처럼 헤더 정보(User-Agent)를 추가해야 차단되지 않습니다.
+			Document doc = Jsoup.connect(url)
+					.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+					.header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
+					.get();
+
+			// 인베스팅닷컴의 실시간 가격 데이터 태그 (data-test 속성 활용)
+			// 현재 인베스팅닷컴은 실시간 시세를 [data-test="instrument-price-last"] 태그에 담습니다.
+			Element priceElement = doc.selectFirst("[data-test='instrument-price-last']");
+
+			if (priceElement != null) {
+				String rateText = priceElement.text().replace(",", "");
+				return Double.parseDouble(rateText);
+			} else {
+				// 위 셀렉터가 안될 경우를 대비한 백업 (일반적인 span 태그 구조)
+				Element backupElement = doc.selectFirst("span.text-2xl");
+				if (backupElement != null) {
+					String rateText = backupElement.text().replace(",", "");
 					return Double.parseDouble(rateText);
 				}
 			}
+
 		} catch (Exception e) {
+			System.err.println("인베스팅닷컴 환율 파싱 중 오류 발생: " + e.getMessage());
 			e.printStackTrace();
 		}
 		return -1;
