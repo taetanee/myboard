@@ -55,9 +55,32 @@ public class MyDashboardRestController {
 
 	@GetMapping("/getExchangeRateUSDToKRW")
 	public ResponseEntity<Map<String, Object>> getExchangeRateUSDToKRW() throws Exception {
-
 		try {
 			Map<String, Object> result = myDashboardService.getExchangeRateUSDToKRW();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getFearAndGreedIndex")
+	public ResponseEntity<Map<String, Object>> getFearAndGreedIndex() {
+		try {
+			Map<String, Object> result = myDashboardService.getFearAndGreedIndex();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getVixIndex")
+	public ResponseEntity<Map<String, Object>> getVixIndex() {
+		try {
+			Map<String, Object> result = myDashboardService.getVixIndex();
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			Map<String, Object> error = new HashMap<>();

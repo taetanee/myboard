@@ -296,4 +296,90 @@ public class MyDashboardService {
 		}
 		return result;
 	}
+
+
+	public Map<String, Object> getFearAndGreedIndex() {
+		Map<String, Object> result = new HashMap<>();
+		try {
+			// 실제 CNN 지수 데이터 경로
+			URL url = new URL("https://production.dataviz.cnn.io/index/fearandgreed/graphdata");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+			conn.setRequestMethod("GET");
+
+			// [핵심] 브라우저와 똑같은 헤더 세팅 (이 중 하나라도 빠지면 418 에러 가능성 높음)
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setRequestProperty("Accept", "application/json");
+			conn.setRequestProperty("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7");
+			conn.setRequestProperty("Cache-Control", "no-cache");
+			conn.setRequestProperty("Pragma", "no-cache");
+			conn.setRequestProperty("Referer", "https://www.cnn.com/markets/fear-and-greed");
+			conn.setRequestProperty("Origin", "https://www.cnn.com");
+
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			int responseCode = conn.getResponseCode();
+			if (responseCode != 200) {
+				throw new Exception("CNN 차단됨 (HTTP " + responseCode + ")");
+			}
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			// 파싱 로직
+			JSONObject json = new JSONObject(sb.toString());
+			// CNN은 'fear_and_greed' 키 안에 'score'가 들어있습니다.
+			JSONObject fng = json.getJSONObject("fear_and_greed");
+
+			double scoreDouble = fng.getDouble("score");
+			int score = (int) Math.round(scoreDouble);
+			String rating = fng.getString("rating");
+			int diff = score - 50;
+
+			result.put("value", score);
+			result.put("rating", rating);
+			result.put("diff", diff);
+			result.put("status", score >= 50 ? "UP" : "DOWN");
+
+		} catch (Exception e) {
+			result.put("value", 0);
+			result.put("rating", "차단됨");
+			result.put("diff", 0);
+			result.put("status", "DOWN");
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	public Map<String, Object> getVixIndex() {
+		Map<String, Object> result = new HashMap<>();
+		try {
+			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/^VIX?interval=1d");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+			String line;
+			StringBuilder sb = new StringBuilder();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JSONObject meta = new JSONObject(sb.toString()).getJSONObject("chart").getJSONArray("result").getJSONObject(0).getJSONObject("meta");
+			double cur = meta.getDouble("regularMarketPrice");
+			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
+			double diff = cur - pre;
+
+			result.put("price", String.format("%.2f", cur));
+			result.put("change", String.format("%.2f", Math.abs(diff)));
+			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
+			result.put("isUp", diff >= 0);
+		} catch (Exception e) {
+			result.put("price", "Error");
+		}
+		return result;
+	}
 }
