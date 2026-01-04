@@ -1,6 +1,6 @@
 package com.web.controller;
 
-import com.web.service.WeatherService;
+import com.web.service.MyDashboardService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,29 +16,29 @@ import java.util.Map;
 
 @Api(tags="날씨 컨트롤러")
 @RestController
-@RequestMapping("/weather")
+@RequestMapping("/myDashboard")
 @Slf4j
-public class WeatherRestController {
+public class MyDashboardRestController {
 
 	@Autowired
-	private WeatherService weatherService;
+	private MyDashboardService myDashboardService;
 
 	@GetMapping("/getMinuDustFrcstDspth")
 	public ResponseEntity<String> getMinuDustFrcstDspth() throws Exception {
-		String result = weatherService.getMinuDustFrcstDspth(new HashMap<>());
+		String result = myDashboardService.getMinuDustFrcstDspth(new HashMap<>());
 		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(result);
 	}
 
 	@GetMapping("/getSnp500CurrentPrice")
 	public ResponseEntity<String> getSnp500CurrentPrice() throws Exception {
-		double result = weatherService.getSnp500CurrentPrice();
+		double result = myDashboardService.getSnp500CurrentPrice();
 		return ResponseEntity.ok().contentType(MediaType.valueOf("application/json;charset=UTF-8")).body(String.valueOf(result));
 	}
 
 	@GetMapping("/getCurrentWeather")
 	public ResponseEntity<Map<String, Object>> getCurrentWeather() {
 		try {
-			Map<String, Object> result = weatherService.getCurrentSeoulWeather();
+			Map<String, Object> result = myDashboardService.getCurrentSeoulWeather();
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			Map<String, Object> error = new HashMap<>();
@@ -51,7 +51,7 @@ public class WeatherRestController {
 	public ResponseEntity<Map<String, Object>> getExchangeRateUSDToKRW() throws Exception {
 
 		try {
-			Map<String, Object> result = weatherService.getExchangeRateUSDToKRW();
+			Map<String, Object> result = myDashboardService.getExchangeRateUSDToKRW();
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			Map<String, Object> error = new HashMap<>();

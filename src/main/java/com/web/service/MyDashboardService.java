@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class WeatherService {
+public class MyDashboardService {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;

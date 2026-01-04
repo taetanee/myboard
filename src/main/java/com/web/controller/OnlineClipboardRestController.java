@@ -17,7 +17,7 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("/onlineClipboard")
 @Slf4j
-public class OnlineClipboardController {
+public class OnlineClipboardRestController {
 
 	@Autowired
 	private OnlineClipboardService onlineClipboardService;
