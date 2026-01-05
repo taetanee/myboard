@@ -23,6 +23,18 @@ public class MyDashboardRestController {
 	@Autowired
 	private MyDashboardService myDashboardService;
 
+	@GetMapping("/getCurrentWeather")
+	public ResponseEntity<Map<String, Object>> getCurrentWeather() {
+		try {
+			Map<String, Object> result = myDashboardService.getCurrentSeoulWeather();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
 	@GetMapping("/getMinuDustFrcstDspth")
 	public ResponseEntity<String> getMinuDustFrcstDspth() throws Exception {
 		String result = myDashboardService.getMinuDustFrcstDspth(new HashMap<>());
@@ -33,18 +45,6 @@ public class MyDashboardRestController {
 	public ResponseEntity<Map<String, Object>> getSnp500CurrentPrice() throws Exception {
 		try {
 			Map<String, Object> result = myDashboardService.getSnp500CurrentPrice();
-			return ResponseEntity.ok(result);
-		} catch (Exception e) {
-			Map<String, Object> error = new HashMap<>();
-			error.put("error", e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-		}
-	}
-
-	@GetMapping("/getCurrentWeather")
-	public ResponseEntity<Map<String, Object>> getCurrentWeather() {
-		try {
-			Map<String, Object> result = myDashboardService.getCurrentSeoulWeather();
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			Map<String, Object> error = new HashMap<>();
