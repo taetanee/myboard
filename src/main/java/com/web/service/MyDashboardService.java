@@ -51,28 +51,36 @@ public class MyDashboardService {
 
 	public String getMinuDustFrcstDspth(HashMap<String, Object> _param) throws Exception {
 
+		String cacheKey = "cache:minu_dust_seoul";
+
+		//[시작] 캐시 확인
+		String cachedData = commonUtil.getCache(cacheKey);
+		if (cachedData != null) return cachedData;
+		//[종료] 캐시 확인
+
 		String result = "";
 
 		//[시작] 하루 빼기
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.DATE, -1); // 하루 빼기
+		cal.add(Calendar.DATE, -1);
 		String searchDate = sdf.format(cal.getTime());
 		//[종료] 하루 빼기
 
 		//[시작] API 호출
-		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMinuDustFrcstDspth"); /*URL*/
-		urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey); /*Service Key*/
-		urlBuilder.append("&" + URLEncoder.encode("returnType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*xml 또는 json*/
-		urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("100", "UTF-8")); /*한 페이지 결과 수(조회 날짜로 검색 시 사용 안함)*/
-		urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호(조회 날짜로 검색 시 사용 안함)*/
+		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMinuDustFrcstDspth");
+		urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+		urlBuilder.append("&" + URLEncoder.encode("returnType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+		urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("100", "UTF-8"));
+		urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
 		urlBuilder.append("&" + URLEncoder.encode("searchDate", "UTF-8") + "=" + URLEncoder.encode(searchDate, "UTF-8"));
-		urlBuilder.append("&" + URLEncoder.encode("InformCode", "UTF-8") + "=" + URLEncoder.encode("PM10", "UTF-8")); /*통보코드검색(PM10, PM25, O3)*/
+		urlBuilder.append("&" + URLEncoder.encode("InformCode", "UTF-8") + "=" + URLEncoder.encode("PM10", "UTF-8"));
+
 		URL url = new URL(urlBuilder.toString());
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("Content-type", "application/json");
-		System.out.println("Response code: " + conn.getResponseCode());
+
 		BufferedReader rd;
 		if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
 			rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -86,7 +94,6 @@ public class MyDashboardService {
 		}
 		rd.close();
 		conn.disconnect();
-		System.out.println(sb.toString());
 		//[종료] API 호출
 
 		//[시작] 값 가져오기
@@ -94,7 +101,6 @@ public class MyDashboardService {
 		JsonNode rootNode = objectMapper.readTree(sb.toString());
 		JsonNode items = rootNode.path("response").path("body").path("items");
 
-		// 가장 최신 날짜 구하기
 		String latestDate = "";
 		for (JsonNode item : items) {
 			String informData = item.path("informData").asText();
@@ -103,7 +109,6 @@ public class MyDashboardService {
 			}
 		}
 
-		// 최신 날짜에 해당하는 서울 값 가져오기
 		for (JsonNode item : items) {
 			if (latestDate.equals(item.path("informData").asText())) {
 				String informGrade = item.path("informGrade").asText();
@@ -117,6 +122,12 @@ public class MyDashboardService {
 			}
 		}
 		//[종료] 값 가져오기
+
+		//[시작] 캐시 저장
+		if (result != null && !result.isEmpty()) {
+			commonUtil.setCache(cacheKey, result);
+		}
+		//[종료] 캐시 저장
 
 		return result;
 	}
@@ -160,7 +171,18 @@ public class MyDashboardService {
 
 
 	public Map<String, Object> getCurrentSeoulWeather() throws Exception {
-		// [1] base_date, base_time 계산
+
+		String cacheKey = "cache:seoul_weather";
+		ObjectMapper mapper = new ObjectMapper();
+
+		//[시작] 캐시 확인
+		String cachedData = commonUtil.getCache(cacheKey);
+		if (cachedData != null) {
+			return mapper.readValue(cachedData, Map.class);
+		}
+		//[종료] 캐시 확인
+
+		//[시작] base_date, base_time 계산
 		String[] baseTimes = { "0200", "0500", "0800", "1100", "1400", "1700", "2000", "2300" };
 		LocalDateTime now = LocalDateTime.now();
 		String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -177,10 +199,11 @@ public class MyDashboardService {
 			baseDate = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 			baseTime = "2300";
 		}
+		//[종료] base_date, base_time 계산
 
-		// [2] API 요청
-		String nx = "60"; // 서울 X
-		String ny = "127"; // 서울 Y
+		//[시작] API 요청
+		String nx = "60";
+		String ny = "127";
 		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst");
 		urlBuilder.append("?").append(URLEncoder.encode("serviceKey", "UTF-8")).append("=").append(serviceKey);
 		urlBuilder.append("&").append(URLEncoder.encode("pageNo", "UTF-8")).append("=1");
@@ -204,9 +227,9 @@ public class MyDashboardService {
 		while ((line = rd.readLine()) != null) sb.append(line);
 		rd.close();
 		conn.disconnect();
+		//[종료] API 요청
 
-		// [3] JSON 파싱
-		ObjectMapper mapper = new ObjectMapper();
+		//[시작] JSON 파싱
 		JsonNode items = mapper.readTree(sb.toString()).path("response").path("body").path("items").path("item");
 
 		double temperature = -999;
@@ -222,8 +245,9 @@ public class MyDashboardService {
 				rainType = Integer.parseInt(value);
 			}
 		}
+		//[종료] JSON 파싱
 
-		// [4] 강수 텍스트/설명 정의
+		//[시작] 강수 텍스트/설명 정의
 		String rainText;
 		String rainDesc;
 		switch (rainType) {
@@ -234,8 +258,9 @@ public class MyDashboardService {
 			case 4: rainText = "소나기"; rainDesc = "소나기가 내림"; break;
 			default: rainText = "알 수 없음"; rainDesc = "날씨 상태를 알 수 없음";
 		}
+		//[종료] 강수 텍스트/설명 정의
 
-		// [5] 응답 구성
+		//[시작] 응답 구성
 		Map<String, Object> response = new HashMap<>();
 		response.put("location", "서울");
 
@@ -249,6 +274,11 @@ public class MyDashboardService {
 
 		response.put("temperature", tempMap);
 		response.put("precipitation", rainMap);
+		//[종료] 응답 구성
+
+		//[시작] 캐시 저장
+		commonUtil.setCache(cacheKey, mapper.writeValueAsString(response));
+		//[종료] 캐시 저장
 
 		return response;
 	}
