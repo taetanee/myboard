@@ -27,7 +27,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-;
+
 
 @Slf4j
 @Service
@@ -320,7 +320,7 @@ public class MyDashboardService {
 		} catch (Exception e) {
 			result.put("rate", "0.00");
 			result.put("change", "0.00");
-			result.put("percent", "0%");
+			result.put("percent", "0.00%"); // 포맷 통일
 			result.put("isUp", true);
 		}
 		return result;
@@ -330,18 +330,15 @@ public class MyDashboardService {
 	public Map<String, Object> getFearAndGreedIndex() {
 		Map<String, Object> result = new HashMap<>();
 		try {
-			// 실제 CNN 지수 데이터 경로
+			// CNN Fear & Greed Index 실제 데이터 엔드포인트
 			URL url = new URL("https://production.dataviz.cnn.io/index/fearandgreed/graphdata");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
 			conn.setRequestMethod("GET");
 
-			// [핵심] 브라우저와 똑같은 헤더 세팅 (이 중 하나라도 빠지면 418 에러 가능성 높음)
+			// 브라우저 환경과 동일한 헤더 설정 (차단 방지)
 			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 			conn.setRequestProperty("Accept", "application/json");
-			conn.setRequestProperty("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7");
-			conn.setRequestProperty("Cache-Control", "no-cache");
-			conn.setRequestProperty("Pragma", "no-cache");
 			conn.setRequestProperty("Referer", "https://www.cnn.com/markets/fear-and-greed");
 			conn.setRequestProperty("Origin", "https://www.cnn.com");
 
@@ -350,35 +347,46 @@ public class MyDashboardService {
 
 			int responseCode = conn.getResponseCode();
 			if (responseCode != 200) {
-				throw new Exception("CNN 차단됨 (HTTP " + responseCode + ")");
+				throw new Exception("CNN 데이터 로드 실패 (HTTP " + responseCode + ")");
 			}
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
 			StringBuilder sb = new StringBuilder();
 			String line;
-			while ((line = rd.readLine()) != null) sb.append(line);
+			while ((line = rd.readLine()) != null) {
+				sb.append(line);
+			}
 			rd.close();
 
-			// 파싱 로직
+			// JSON 파싱
 			JSONObject json = new JSONObject(sb.toString());
-			// CNN은 'fear_and_greed' 키 안에 'score'가 들어있습니다.
 			JSONObject fng = json.getJSONObject("fear_and_greed");
 
+			// 1. 현재 지수 및 상태
 			double scoreDouble = fng.getDouble("score");
 			int score = (int) Math.round(scoreDouble);
 			String rating = fng.getString("rating");
-			int diff = score - 50;
 
-			result.put("value", score);
-			result.put("rating", rating);
-			result.put("diff", diff);
-			result.put("status", score >= 50 ? "UP" : "DOWN");
+			// 2. 전일 지수 (previous_close) 추출 및 변동폭 계산
+			double previousClose = fng.getDouble("previous_close");
+			int prevScore = (int) Math.round(previousClose);
+
+			// [핵심 수정] 50 기준이 아닌 전일 점수와의 차이 계산
+			int diff = score - prevScore;
+
+			result.put("value", score);           // 현재 지수
+			result.put("rating", rating);         // 현재 단계 (Greed, Fear 등)
+			result.put("prevValue", prevScore);   // 전일 지수
+			result.put("diff", diff);             // 전일 대비 변동폭
+
+			// diff가 0보다 크면 상승(UP), 작으면 하락(DOWN)
+			result.put("status", diff >= 0 ? "UP" : "DOWN");
 
 		} catch (Exception e) {
 			result.put("value", 0);
-			result.put("rating", "차단됨");
+			result.put("rating", "에러 발생");
 			result.put("diff", 0);
-			result.put("status", "DOWN");
+			result.put("status", "NONE");
 			result.put("error", e.getMessage());
 		}
 		return result;
