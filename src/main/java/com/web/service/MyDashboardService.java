@@ -435,14 +435,13 @@ public class MyDashboardService {
 		Map<String, Object> result = new HashMap<>();
 
 		try {
-			// [시작] 캐시 확인
+			// 1. 캐시 확인
 			String cachedData = commonUtil.getCache(cacheKey);
 			if (cachedData != null) {
 				return mapper.readValue(cachedData, Map.class);
 			}
-			// [종료] 캐시 확인
 
-			// [시작] API 요청
+			// 2. 야후 파이낸스 VIX 데이터 요청
 			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/^VIX?interval=1d");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
@@ -455,7 +454,7 @@ public class MyDashboardService {
 			while ((line = rd.readLine()) != null) sb.append(line);
 			rd.close();
 
-			// [시작] JSON 파싱
+			// 3. JSON 파싱
 			JSONObject responseJson = new JSONObject(sb.toString());
 			JSONObject meta = responseJson.getJSONObject("chart")
 					.getJSONArray("result")
@@ -463,28 +462,38 @@ public class MyDashboardService {
 					.getJSONObject("meta");
 
 			double cur = meta.getDouble("regularMarketPrice");
-			// 전일 종가가 없을 경우 현재가나 기본값으로 대체하는 안전장치
 			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
 			double diff = cur - pre;
 
+			// 4. VIX 상태 단어 정의 (단순화)
+			String status;
+			if (cur <= 20) {
+				status = "STABLE";    // 안정
+			} else if (cur <= 30) {
+				status = "NERVOUS";   // 주의
+			} else if (cur <= 40) {
+				status = "DANGER";    // 위험
+			} else {
+				status = "PANIC";     // 패닉
+			}
+
+			// 5. 결과 데이터 구성
 			result.put("price", String.format("%.2f", cur));
 			result.put("change", String.format("%.2f", Math.abs(diff)));
 			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
 			result.put("isUp", diff >= 0);
-			// [종료] JSON 파싱
+			result.put("status", status); // STABLE, NERVOUS, DANGER, PANIC
 
-			// [시작] 캐시 저장
-			// VIX 지수는 시장 변동성을 나타내므로 5분(300초) 정도의 캐시가 적당합니다.
-			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60 * 5);
-			// [종료] 캐시 저장
+			// 6. 캐시 저장 (300초 = 5분)
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 300);
 
 		} catch (Exception e) {
-			System.err.println("VIX 지수 로드 실패: " + e.getMessage());
+			// 에러 발생 시 기본값 반환
 			result.put("price", "0.00");
 			result.put("change", "0.00");
 			result.put("percent", "0.00%");
 			result.put("isUp", false);
-			result.put("error", e.getMessage());
+			result.put("status", "ERROR");
 		}
 		return result;
 	}
