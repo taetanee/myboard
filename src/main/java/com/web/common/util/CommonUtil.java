@@ -58,11 +58,10 @@ public class CommonUtil {
         }
     }
 
-    // Redis에 값 저장하기 (10분)
-    public void setCache(String key, String value) {
+    public void setCache(String key, String value, long timeoutSeconds) {
         try {
             if (value != null && !value.isEmpty()) {
-                redisTemplate.opsForValue().set(key, value, 10, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(key, value, timeoutSeconds, TimeUnit.SECONDS);
             }
         } catch (Exception e) {
             // 로깅 생략

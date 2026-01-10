@@ -156,7 +156,7 @@ public class MyDashboardService {
 		//[종료] 응답 구성
 
 		//[시작] 캐시 저장
-		commonUtil.setCache(cacheKey, mapper.writeValueAsString(response));
+		commonUtil.setCache(cacheKey, mapper.writeValueAsString(response), 600);
 		//[종료] 캐시 저장
 
 		return response;
@@ -238,7 +238,7 @@ public class MyDashboardService {
 
 		//[시작] 캐시 저장
 		if (result != null && !result.isEmpty()) {
-			commonUtil.setCache(cacheKey, result);
+			commonUtil.setCache(cacheKey, result, 600);
 		}
 		//[종료] 캐시 저장
 
@@ -246,11 +246,22 @@ public class MyDashboardService {
 	}
 
 	public Map<String, Object> getSnp500CurrentPrice() {
+		String cacheKey = "cache:snp500_index";
+		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> result = new HashMap<>();
+
 		try {
-			// 야후 파이낸스 S&P 500 페이지
+			// [시작] 캐시 확인
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+			// [종료] 캐시 확인
+
+			// [시작] 크롤링 수행
 			Document doc = Jsoup.connect("https://finance.yahoo.com/quote/%5EGSPC")
-					.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+					.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+					.timeout(5000)
 					.get();
 
 			// 1. 현재 지수 (Price)
@@ -268,9 +279,14 @@ public class MyDashboardService {
 				result.put("price", price);
 				result.put("change", change);
 				result.put("percent", percent);
-				// 등락값이 "-"로 시작하지 않으면 상승으로 판단
 				result.put("isUp", !change.startsWith("-"));
+
+				// [시작] 캐시 저장
+				// 야후 파이낸스 지수는 자주 바뀌므로 날씨보다는 짧은 캐시 시간을 권장합니다 (예: 1분~5분)
+				commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+				// [종료] 캐시 저장
 			}
+			// [종료] 크롤링 수행
 
 		} catch (Exception e) {
 			System.err.println("S&P 500 크롤링 실패: " + e.getMessage());
@@ -278,16 +294,26 @@ public class MyDashboardService {
 			result.put("change", "0.00");
 			result.put("percent", "0.00%");
 			result.put("isUp", true);
+			result.put("error", e.getMessage());
 		}
 		return result;
 	}
 
 
 	public Map<String, Object> getExchangeRateUSDToKRW() {
+		String cacheKey = "cache:exchange_rate_usd_krw";
+		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> result = new HashMap<>();
+
 		try {
-			// 인베스팅닷컴 실시간 지수를 반영하는 공개 API 경로 (예시)
-			// 실제 운영 시에는 인증된 환율 API 사용을 권장하지만, 테스트용으로 아래 구조를 사용합니다.
+			// [시작] 캐시 확인
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+			// [종료] 캐시 확인
+
+			// [시작] API 요청
 			String urlStr = "https://open.er-api.com/v6/latest/USD";
 			URL url = new URL(urlStr);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -305,10 +331,8 @@ public class MyDashboardService {
 			JSONObject json = new JSONObject(response.toString());
 			double currentRate = json.getJSONObject("rates").getDouble("KRW");
 
-			// 전일 대비 계산 (API에서 제공하는 경우 사용, 없을 경우 임의 계산 예시)
-			// 실제 인베스팅닷컴처럼 정밀하게 하려면 서버에서 어제 종가를 DB에 저장해둬야 합니다.
-			// 여기서는 화면 구성을 위해 계산 로직만 넣어둡니다.
-			double dummyPrevClose = currentRate - 2.5; // 테스트용 전일 종가 가정
+			// 전일 대비 계산 (임시 로직 유지)
+			double dummyPrevClose = currentRate - 2.5;
 			double change = currentRate - dummyPrevClose;
 			double percent = (change / dummyPrevClose) * 100;
 
@@ -317,26 +341,41 @@ public class MyDashboardService {
 			result.put("percent", String.format("%.2f", percent) + "%");
 			result.put("isUp", change >= 0);
 
+			// [시작] 캐시 저장
+			// 환율은 변동성이 있으므로 5분~10분 정도의 캐시를 추천합니다.
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+			// [종료] 캐시 저장
+
 		} catch (Exception e) {
 			result.put("rate", "0.00");
 			result.put("change", "0.00");
-			result.put("percent", "0.00%"); // 포맷 통일
+			result.put("percent", "0.00%");
 			result.put("isUp", true);
+			result.put("error", e.getMessage());
 		}
 		return result;
 	}
 
 
 	public Map<String, Object> getFearAndGreedIndex() {
+		String cacheKey = "cache:fear_greed_index";
+		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> result = new HashMap<>();
+
 		try {
-			// CNN Fear & Greed Index 실제 데이터 엔드포인트
+			// [시작] 캐시 확인
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+			// [종료] 캐시 확인
+
+			// [시작] API 요청
 			URL url = new URL("https://production.dataviz.cnn.io/index/fearandgreed/graphdata");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
 			conn.setRequestMethod("GET");
 
-			// 브라우저 환경과 동일한 헤더 설정 (차단 방지)
+			// 브라우저 환경 헤더 세팅
 			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 			conn.setRequestProperty("Accept", "application/json");
 			conn.setRequestProperty("Referer", "https://www.cnn.com/markets/fear-and-greed");
@@ -347,44 +386,42 @@ public class MyDashboardService {
 
 			int responseCode = conn.getResponseCode();
 			if (responseCode != 200) {
-				throw new Exception("CNN 데이터 로드 실패 (HTTP " + responseCode + ")");
+				throw new Exception("CNN 차단됨 (HTTP " + responseCode + ")");
 			}
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
 			StringBuilder sb = new StringBuilder();
 			String line;
-			while ((line = rd.readLine()) != null) {
-				sb.append(line);
-			}
+			while ((line = rd.readLine()) != null) sb.append(line);
 			rd.close();
 
-			// JSON 파싱
+			// [시작] JSON 파싱 및 데이터 구성
 			JSONObject json = new JSONObject(sb.toString());
 			JSONObject fng = json.getJSONObject("fear_and_greed");
 
-			// 1. 현재 지수 및 상태
 			double scoreDouble = fng.getDouble("score");
 			int score = (int) Math.round(scoreDouble);
 			String rating = fng.getString("rating");
 
-			// 2. 전일 지수 (previous_close) 추출 및 변동폭 계산
 			double previousClose = fng.getDouble("previous_close");
 			int prevScore = (int) Math.round(previousClose);
-
-			// [핵심 수정] 50 기준이 아닌 전일 점수와의 차이 계산
 			int diff = score - prevScore;
 
-			result.put("value", score);           // 현재 지수
-			result.put("rating", rating);         // 현재 단계 (Greed, Fear 등)
-			result.put("prevValue", prevScore);   // 전일 지수
-			result.put("diff", diff);             // 전일 대비 변동폭
-
-			// diff가 0보다 크면 상승(UP), 작으면 하락(DOWN)
+			result.put("value", score);
+			result.put("rating", rating);
+			result.put("prevValue", prevScore);
+			result.put("diff", diff);
 			result.put("status", diff >= 0 ? "UP" : "DOWN");
+			// [종료] JSON 파싱 및 데이터 구성
+
+			// [시작] 캐시 저장
+			// 심리 지수는 변동폭이 크지 않으므로 10분~30분 정도의 캐시를 추천합니다.
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 10 * 60);
+			// [종료] 캐시 저장
 
 		} catch (Exception e) {
 			result.put("value", 0);
-			result.put("rating", "에러 발생");
+			result.put("rating", "데이터 오류");
 			result.put("diff", 0);
 			result.put("status", "NONE");
 			result.put("error", e.getMessage());
@@ -393,20 +430,40 @@ public class MyDashboardService {
 	}
 
 	public Map<String, Object> getVixIndex() {
+		String cacheKey = "cache:vix_index";
+		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> result = new HashMap<>();
+
 		try {
+			// [시작] 캐시 확인
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+			// [종료] 캐시 확인
+
+			// [시작] API 요청
 			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/^VIX?interval=1d");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setConnectTimeout(5000);
 
-			String line;
-			StringBuilder sb = new StringBuilder();
 			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
 			while ((line = rd.readLine()) != null) sb.append(line);
 			rd.close();
 
-			JSONObject meta = new JSONObject(sb.toString()).getJSONObject("chart").getJSONArray("result").getJSONObject(0).getJSONObject("meta");
+			// [시작] JSON 파싱
+			JSONObject responseJson = new JSONObject(sb.toString());
+			JSONObject meta = responseJson.getJSONObject("chart")
+					.getJSONArray("result")
+					.getJSONObject(0)
+					.getJSONObject("meta");
+
 			double cur = meta.getDouble("regularMarketPrice");
+			// 전일 종가가 없을 경우 현재가나 기본값으로 대체하는 안전장치
 			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
 			double diff = cur - pre;
 
@@ -414,8 +471,20 @@ public class MyDashboardService {
 			result.put("change", String.format("%.2f", Math.abs(diff)));
 			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
 			result.put("isUp", diff >= 0);
+			// [종료] JSON 파싱
+
+			// [시작] 캐시 저장
+			// VIX 지수는 시장 변동성을 나타내므로 5분(300초) 정도의 캐시가 적당합니다.
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60 * 5);
+			// [종료] 캐시 저장
+
 		} catch (Exception e) {
-			result.put("price", "Error");
+			System.err.println("VIX 지수 로드 실패: " + e.getMessage());
+			result.put("price", "0.00");
+			result.put("change", "0.00");
+			result.put("percent", "0.00%");
+			result.put("isUp", false);
+			result.put("error", e.getMessage());
 		}
 		return result;
 	}
