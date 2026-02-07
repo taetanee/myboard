@@ -129,6 +129,17 @@ public class OnlineClipboardService {
 		}
 	}
 
+	public void deleteFile(String randomWord, String fileName) throws Exception {
+		String filePath = UPLOAD_DIR + randomWord + "/" + fileName;
+		File file = new File(filePath);
+		if (!file.exists() || !file.isFile()) {
+			throw new MyException(Const.NO_DATA_API_ERROR);
+		}
+		if (!file.delete()) {
+			throw new Exception("파일 삭제 실패: " + fileName);
+		}
+	}
+
 	public List<String> getFileList(String randomWord) throws Exception {
 		List<String> fileNames = new ArrayList<>();
 		String dirPath = UPLOAD_DIR + randomWord + "/";

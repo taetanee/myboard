@@ -90,6 +90,19 @@ public class OnlineClipboardRestController {
 		return onlineClipboardService.downloadFile(randomWord, fileName);
 	}
 
+	@DeleteMapping("/deleteFile")
+	public ResponseEntity<?> deleteFile(@RequestParam String randomWord, @RequestParam String fileName) throws Exception {
+		CommonResponse response = new CommonResponse();
+		try {
+			onlineClipboardService.deleteFile(randomWord, fileName);
+		} catch (MyException e) {
+			throw new MyException(e);
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping("/fileList")
 	public ResponseEntity<?> getFileList(@RequestParam String randomWord) throws Exception {
 		CommonResponse response = new CommonResponse();
