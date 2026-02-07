@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Api(tags="온라인 클립보드")
 @RestController
@@ -70,11 +71,11 @@ public class OnlineClipboardRestController {
 	}
 
 	@PostMapping("/upload")
-	public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile param) throws Exception {
+	public ResponseEntity<?> uploadFile(@RequestPart("file") MultipartFile param, @RequestPart("randomWord") String randomWord) throws Exception {
 		CommonResponse response = new CommonResponse();
 		HashMap<Object,Object> result = null;
 		try {
-			result = onlineClipboardService.uploadFile(param);
+			result = onlineClipboardService.uploadFile(param, randomWord);
 		} catch (MyException e) {
 			throw new MyException(e);
 		} catch (Exception e) {
@@ -84,11 +85,23 @@ public class OnlineClipboardRestController {
 		return ResponseEntity.ok(response);
 	}
 
-
 	@GetMapping("/download")
-	public ResponseEntity<Resource> downloadFile(@RequestParam String fileName) throws Exception {
+	public ResponseEntity<Resource> downloadFile(@RequestParam String randomWord, @RequestParam String fileName) throws Exception {
+		return onlineClipboardService.downloadFile(randomWord, fileName);
+	}
+
+	@GetMapping("/fileList")
+	public ResponseEntity<?> getFileList(@RequestParam String randomWord) throws Exception {
 		CommonResponse response = new CommonResponse();
-		ResponseEntity<Resource> result = null;
-		return onlineClipboardService.downloadFile(fileName);
+		List<String> result = null;
+		try {
+			result = onlineClipboardService.getFileList(randomWord);
+		} catch (MyException e) {
+			throw new MyException(e);
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+		response.setResult(result);
+		return ResponseEntity.ok(response);
 	}
 }

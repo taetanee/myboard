@@ -19,9 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -88,46 +91,60 @@ public class OnlineClipboardService {
 	}
 
 
-	public HashMap<Object,Object> uploadFile(MultipartFile param) throws Exception {
+	public HashMap<Object,Object> uploadFile(MultipartFile param, String randomWord) throws Exception {
 		HashMap<Object,Object> result = new HashMap<>();
 		if (param.isEmpty()) {
-			//return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("파일이 없습니다.");
+			throw new MyException(Const.NOT_INVALID_PARAM_ERROR);
 		}
 
-		try {
-			// 업로드 디렉토리가 없으면 생성
-			File uploadDir = new File(UPLOAD_DIR);
-			if (!uploadDir.exists()) {
-				uploadDir.mkdirs();
-			}
-
-			// 파일 저장
-			String filePath = UPLOAD_DIR + param.getOriginalFilename();
-			param.transferTo(new File(filePath));
-
-			//return ResponseEntity.ok("파일 업로드 성공: " + param.getOriginalFilename());
-		} catch (IOException e) {
-			//return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 실패: " + e.getMessage());
+		// randomWord별 디렉토리에 저장
+		String dirPath = UPLOAD_DIR + randomWord + "/";
+		File uploadDir = new File(dirPath);
+		if (!uploadDir.exists()) {
+			uploadDir.mkdirs();
 		}
+
+		String filePath = dirPath + param.getOriginalFilename();
+		param.transferTo(new File(filePath));
+
+		result.put("fileName", param.getOriginalFilename());
 		return result;
 	}
 
-	public ResponseEntity<Resource> downloadFile(String fileName) throws Exception {
+	public ResponseEntity<Resource> downloadFile(String randomWord, String fileName) throws Exception {
 		try {
-			Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName).normalize();
+			Path filePath = Paths.get(UPLOAD_DIR + randomWord + "/").resolve(fileName).normalize();
 			Resource resource = new UrlResource(filePath.toUri());
 
 			if (!resource.exists()) {
-				//FIXME : 파일이 있는데, 이 조건문으로 떨어짐
 				return ResponseEntity.notFound().build();
 			}
 
+			String encodedFileName = URLEncoder.encode(resource.getFilename(), "UTF-8").replace("+", "%20");
 			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName)
 					.body(resource);
 		} catch (MalformedURLException e) {
 			return ResponseEntity.badRequest().build();
 		}
+	}
+
+	public List<String> getFileList(String randomWord) throws Exception {
+		List<String> fileNames = new ArrayList<>();
+		String dirPath = UPLOAD_DIR + randomWord + "/";
+		File dir = new File(dirPath);
+
+		if (dir.exists() && dir.isDirectory()) {
+			File[] files = dir.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					if (file.isFile()) {
+						fileNames.add(file.getName());
+					}
+				}
+			}
+		}
+		return fileNames;
 	}
 
 }
