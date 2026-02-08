@@ -1,8 +1,8 @@
 package com.web.service;
 
 import com.web.common.util.CommonUtil;
-import com.web.mapper.CommonMapper;
 import com.web.dto.CovidDTO;
+import com.web.mapper.CommonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
