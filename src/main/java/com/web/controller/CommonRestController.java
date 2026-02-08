@@ -1,7 +1,7 @@
 package com.web.controller;
 
-import com.web.common.MyException;
 import com.web.common.CommonResponse;
+import com.web.common.MyException;
 import com.web.service.CommonService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
