@@ -5,3 +5,9 @@ spring :
 server:
   error:
     path: /errorPath
+
+#[시작] 외부 API 키
+api:
+  data-go-kr:
+    service-key: "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D"
+#[종료] 외부 API 키

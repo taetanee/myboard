@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.web.common.util.CommonUtil;
 import com.web.common.util.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,7 +26,9 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -47,7 +51,8 @@ public class MyDashboardService {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	private static String serviceKey = "vvSbtDzTIbQ9rNkwq8WqL9SYwjihCcEujiNogCS9sgk37RU%2B3KJIRoQ6b%2FpY452SbKenj5A3RnPdgyup1jillw%3D%3D";
+	@Value("${api.data-go-kr.service-key}")
+	private String serviceKey;
 
 	public Map<String, Object> getCurrentSeoulWeather() throws Exception {
 
@@ -424,6 +429,201 @@ public class MyDashboardService {
 			result.put("rating", "데이터 오류");
 			result.put("diff", 0);
 			result.put("status", "NONE");
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	public List<Map<String, String>> searchStock(String query) throws Exception {
+		// 한글 포함 여부에 따라 검색 소스 분기
+		boolean isKorean = query.matches(".*[가-힣].*");
+		if (isKorean) {
+			return searchStockKrx(query);
+		} else {
+			return searchStockYahoo(query);
+		}
+	}
+
+	// [공공데이터 포털] 한글 종목명 검색
+	private List<Map<String, String>> searchStockKrx(String query) throws Exception {
+		List<Map<String, String>> results = new ArrayList<>();
+
+		// [시작] API 요청
+		StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo");
+		urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+		urlBuilder.append("&" + URLEncoder.encode("resultType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+		urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("100", "UTF-8"));
+		urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
+		urlBuilder.append("&" + URLEncoder.encode("likeItmsNm", "UTF-8") + "=" + URLEncoder.encode(query, "UTF-8"));
+
+		URL url = new URL(urlBuilder.toString());
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.setRequestProperty("Content-type", "application/json");
+		conn.setConnectTimeout(5000);
+		conn.setReadTimeout(5000);
+
+		BufferedReader rd;
+		if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+			rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+		} else {
+			throw new Exception("공공데이터 API 응답 오류 (HTTP " + conn.getResponseCode() + ")");
+		}
+
+		StringBuilder sb = new StringBuilder();
+		String line;
+		while ((line = rd.readLine()) != null) sb.append(line);
+		rd.close();
+		conn.disconnect();
+		// [종료] API 요청
+
+		// [시작] JSON 파싱 (종목코드별 중복 제거)
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode itemNode = mapper.readTree(sb.toString())
+				.path("response").path("body").path("items").path("item");
+
+		// 단건(Object) / 다건(Array) 모두 처리
+		List<JsonNode> itemList = new ArrayList<>();
+		if (itemNode.isArray()) {
+			for (JsonNode n : itemNode) itemList.add(n);
+		} else if (itemNode.isObject()) {
+			itemList.add(itemNode);
+		}
+
+		List<String> seenCodes = new ArrayList<>();
+		for (JsonNode item : itemList) {
+			String code = item.path("srtnCd").asText("");
+			if (code.isEmpty() || seenCodes.contains(code)) continue;
+			seenCodes.add(code);
+
+			String name = item.path("itmsNm").asText("");
+			String market = item.path("mrktCtg").asText("");
+			String suffix = "KOSDAQ".equals(market) ? ".KQ" : ".KS";
+
+			Map<String, String> entry = new HashMap<>();
+			entry.put("ticker", code + suffix);
+			entry.put("name", name);
+			entry.put("exchange", market);
+			entry.put("type", "EQUITY");
+			results.add(entry);
+
+			if (results.size() >= 8) break;
+		}
+		// [종료] JSON 파싱
+
+		return results;
+	}
+
+	// [Yahoo Finance] 영문·숫자 종목 검색
+	private List<Map<String, String>> searchStockYahoo(String query) throws Exception {
+		List<Map<String, String>> results = new ArrayList<>();
+
+		String encodedQuery = URLEncoder.encode(query, "UTF-8");
+		URL url = new URL("https://query2.finance.yahoo.com/v1/finance/search?q=" + encodedQuery + "&quotesCount=8&newsCount=0");
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+		conn.setConnectTimeout(5000);
+		conn.setReadTimeout(5000);
+
+		BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+		StringBuilder sb = new StringBuilder();
+		String line;
+		while ((line = rd.readLine()) != null) sb.append(line);
+		rd.close();
+
+		JSONObject json = new JSONObject(sb.toString());
+		JSONArray quotes = json.getJSONArray("quotes");
+
+		for (int i = 0; i < quotes.length(); i++) {
+			JSONObject quote = quotes.getJSONObject(i);
+			String quoteType = quote.optString("quoteType", "");
+
+			if (!"EQUITY".equals(quoteType) && !"ETF".equals(quoteType) && !"INDEX".equals(quoteType)) {
+				continue;
+			}
+
+			Map<String, String> item = new HashMap<>();
+			item.put("ticker", quote.optString("symbol", ""));
+			item.put("name", quote.optString("shortname", quote.optString("longname", "")));
+			item.put("exchange", quote.optString("exchDisp", quote.optString("exchange", "")));
+			item.put("type", quoteType);
+			results.add(item);
+		}
+
+		return results;
+	}
+
+	public Map<String, Object> getStockPrice(String ticker) {
+		String cacheKey = "cache:stock_" + ticker.toLowerCase();
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> result = new HashMap<>();
+
+		try {
+			// [시작] 캐시 확인
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+			// [종료] 캐시 확인
+
+			// [시작] Yahoo Finance API 요청
+			String encodedTicker = URLEncoder.encode(ticker, "UTF-8");
+			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/" + encodedTicker + "?interval=1d");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			if (conn.getResponseCode() != 200) {
+				throw new Exception("Yahoo Finance 응답 오류 (HTTP " + conn.getResponseCode() + ")");
+			}
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+			// [종료] Yahoo Finance API 요청
+
+			// [시작] JSON 파싱
+			JSONObject responseJson = new JSONObject(sb.toString());
+			JSONObject meta = responseJson.getJSONObject("chart")
+					.getJSONArray("result")
+					.getJSONObject(0)
+					.getJSONObject("meta");
+
+			double cur = meta.getDouble("regularMarketPrice");
+			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
+			double diff = cur - pre;
+
+			String name = meta.optString("shortName", ticker);
+			String currency = meta.optString("currency", "USD");
+			// [종료] JSON 파싱
+
+			// [시작] 결과 구성
+			result.put("ticker", ticker);
+			result.put("name", name);
+			result.put("price", String.format("%.2f", cur));
+			result.put("change", String.format("%.2f", Math.abs(diff)));
+			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
+			result.put("isUp", diff >= 0);
+			result.put("currency", currency);
+			// [종료] 결과 구성
+
+			// [시작] 캐시 저장 (60초)
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+			// [종료] 캐시 저장
+
+		} catch (Exception e) {
+			result.put("ticker", ticker);
+			result.put("name", ticker);
+			result.put("price", "0.00");
+			result.put("change", "0.00");
+			result.put("percent", "0.00%");
+			result.put("isUp", false);
+			result.put("currency", "");
 			result.put("error", e.getMessage());
 		}
 		return result;

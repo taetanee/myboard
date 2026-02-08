@@ -9,9 +9,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Api(tags="날씨 컨트롤러")
@@ -69,6 +71,30 @@ public class MyDashboardRestController {
 	public ResponseEntity<Map<String, Object>> getFearAndGreedIndex() {
 		try {
 			Map<String, Object> result = myDashboardService.getFearAndGreedIndex();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/searchStock")
+	public ResponseEntity<?> searchStock(@RequestParam String query) {
+		try {
+			List<Map<String, String>> results = myDashboardService.searchStock(query);
+			return ResponseEntity.ok(results);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getStockPrice")
+	public ResponseEntity<Map<String, Object>> getStockPrice(@RequestParam String ticker) {
+		try {
+			Map<String, Object> result = myDashboardService.getStockPrice(ticker);
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			Map<String, Object> error = new HashMap<>();
