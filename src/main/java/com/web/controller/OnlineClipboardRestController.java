@@ -103,6 +103,21 @@ public class OnlineClipboardRestController {
 		return ResponseEntity.ok(response);
 	}
 
+	@PostMapping("/migrateData")
+	public ResponseEntity<?> migrateData(@RequestBody HashMap<String, Object> param) throws Exception {
+		CommonResponse response = new CommonResponse();
+		HashMap<String, Object> result = null;
+		try {
+			result = onlineClipboardService.migrateData(param);
+		} catch (MyException e) {
+			throw new MyException(e);
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+		response.setResult(result);
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping("/fileList")
 	public ResponseEntity<?> getFileList(@RequestParam String randomWord) throws Exception {
 		CommonResponse response = new CommonResponse();

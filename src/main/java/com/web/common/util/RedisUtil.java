@@ -30,5 +30,8 @@ public class RedisUtil {
 		return redisTemplate.opsForSet().members(key);
 	}
 
+	public void deleteValues(String key){
+		redisTemplate.delete(key);
+	}
 
 }

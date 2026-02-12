@@ -139,6 +139,47 @@ public class OnlineClipboardService {
 		}
 	}
 
+	public HashMap<String, Object> migrateData(HashMap<String, Object> param) throws Exception {
+		HashMap<String, Object> result = new HashMap<>();
+		String oldWord = (String) param.get("oldRandomWord");
+		String newWord = (String) param.get("newRandomWord");
+
+		if (oldWord == null || oldWord.isEmpty() || newWord == null || newWord.isEmpty()) {
+			throw new MyException(Const.NOT_INVALID_PARAM_ERROR);
+		}
+		if (oldWord.equals(newWord)) {
+			result.put("migrated", false);
+			return result;
+		}
+
+		// 1. Redis 데이터 마이그레이션
+		String redisValue = redisUtil.getValues(oldWord);
+		if (redisValue != null && !redisValue.isEmpty()) {
+			redisUtil.setValues(newWord, redisValue);
+			redisUtil.deleteValues(oldWord);
+		}
+
+		// 2. 파일시스템 디렉토리 마이그레이션
+		File oldDir = new File(UPLOAD_DIR + oldWord + "/");
+		if (oldDir.exists() && oldDir.isDirectory()) {
+			File newDir = new File(UPLOAD_DIR + newWord + "/");
+			if (!newDir.exists()) {
+				newDir.mkdirs();
+			}
+			File[] files = oldDir.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					File dest = new File(newDir, file.getName());
+					file.renameTo(dest);
+				}
+			}
+			oldDir.delete();
+		}
+
+		result.put("migrated", true);
+		return result;
+	}
+
 	public List<String> getFileList(String randomWord) throws Exception {
 		List<String> fileNames = new ArrayList<>();
 		String dirPath = UPLOAD_DIR + randomWord + "/";
