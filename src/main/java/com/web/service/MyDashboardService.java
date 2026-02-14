@@ -176,78 +176,78 @@ public class MyDashboardService {
 		if (cachedData != null) return cachedData;
 		//[종료] 캐시 확인
 
-		String result = "";
-
-		//[시작] 하루 빼기
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String today = sdf.format(Calendar.getInstance().getTime());
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DATE, -1);
-		String searchDate = sdf.format(cal.getTime());
-		//[종료] 하루 빼기
+		String yesterday = sdf.format(cal.getTime());
 
-		//[시작] API 호출
-		StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMinuDustFrcstDspth");
-		urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
-		urlBuilder.append("&" + URLEncoder.encode("returnType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
-		urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("100", "UTF-8"));
-		urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
-		urlBuilder.append("&" + URLEncoder.encode("searchDate", "UTF-8") + "=" + URLEncoder.encode(searchDate, "UTF-8"));
-		urlBuilder.append("&" + URLEncoder.encode("InformCode", "UTF-8") + "=" + URLEncoder.encode("PM10", "UTF-8"));
+		// 오늘 예보 먼저, 없으면 어제 발표분에서 오늘 데이터 사용
+		String pm10 = fetchDustGrade("PM10", today, today);
+		if (pm10.isEmpty()) pm10 = fetchDustGrade("PM10", yesterday, today);
 
-		URL url = new URL(urlBuilder.toString());
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setRequestMethod("GET");
-		conn.setRequestProperty("Content-type", "application/json");
+		String pm25 = fetchDustGrade("PM25", today, today);
+		if (pm25.isEmpty()) pm25 = fetchDustGrade("PM25", yesterday, today);
 
-		BufferedReader rd;
-		if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-			rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		} else {
-			rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+		String result = "";
+		if (!pm10.isEmpty() && !pm25.isEmpty()) {
+			result = "미세먼지: " + pm10 + " / 초미세먼지: " + pm25;
+		} else if (!pm10.isEmpty()) {
+			result = "미세먼지: " + pm10;
+		} else if (!pm25.isEmpty()) {
+			result = "초미세먼지: " + pm25;
 		}
-		StringBuilder sb = new StringBuilder();
-		String line;
-		while ((line = rd.readLine()) != null) {
-			sb.append(line);
-		}
-		rd.close();
-		conn.disconnect();
-		//[종료] API 호출
-
-		//[시작] 값 가져오기
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode rootNode = objectMapper.readTree(sb.toString());
-		JsonNode items = rootNode.path("response").path("body").path("items");
-
-		String latestDate = "";
-		for (JsonNode item : items) {
-			String informData = item.path("informData").asText();
-			if (informData.compareTo(latestDate) > 0) {
-				latestDate = informData;
-			}
-		}
-
-		for (JsonNode item : items) {
-			if (latestDate.equals(item.path("informData").asText())) {
-				String informGrade = item.path("informGrade").asText();
-				for (String regionData : informGrade.split(",")) {
-					if (regionData.startsWith("서울")) {
-						result = regionData.split(":")[1].trim();
-						break;
-					}
-				}
-				break;
-			}
-		}
-		//[종료] 값 가져오기
 
 		//[시작] 캐시 저장
-		if (result != null && !result.isEmpty()) {
+		if (!result.isEmpty()) {
 			commonUtil.setCache(cacheKey, result, 600);
 		}
 		//[종료] 캐시 저장
 
 		return result;
+	}
+
+	private String fetchDustGrade(String informCode, String searchDate, String targetDate) {
+		try {
+			StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMinuDustFrcstDspth");
+			urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+			urlBuilder.append("&" + URLEncoder.encode("returnType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+			urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("100", "UTF-8"));
+			urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
+			urlBuilder.append("&" + URLEncoder.encode("searchDate", "UTF-8") + "=" + URLEncoder.encode(searchDate, "UTF-8"));
+			urlBuilder.append("&" + URLEncoder.encode("InformCode", "UTF-8") + "=" + URLEncoder.encode(informCode, "UTF-8"));
+
+			URL url = new URL(urlBuilder.toString());
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Content-type", "application/json");
+
+			if (conn.getResponseCode() < 200 || conn.getResponseCode() > 300) return "";
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+			conn.disconnect();
+
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode items = mapper.readTree(sb.toString()).path("response").path("body").path("items");
+
+			for (JsonNode item : items) {
+				if (!targetDate.equals(item.path("informData").asText())) continue;
+				String informGrade = item.path("informGrade").asText();
+				for (String regionData : informGrade.split(",")) {
+					if (regionData.trim().startsWith("서울")) {
+						String[] parts = regionData.split(":");
+						if (parts.length >= 2) return parts[1].trim();
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.warn("fetchDustGrade 실패 [{}] [{}]: {}", informCode, searchDate, e.getMessage());
+		}
+		return "";
 	}
 
 	public Map<String, Object> getSnp500CurrentPrice() {
