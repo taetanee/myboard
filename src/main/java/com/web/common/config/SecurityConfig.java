@@ -25,7 +25,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(Arrays.asList("http://localhost:23000","http://124.53.139.229:23000","http://mypad.kr:23000"));
+		config.setAllowedOrigins(Arrays.asList("http://localhost","http://124.53.139.229","http://mypad.kr"));
 		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
 		config.setAllowedHeaders(Arrays.asList("*"));
 		config.setAllowCredentials(true);
