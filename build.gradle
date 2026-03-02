@@ -92,6 +92,10 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.17.2'
     //[종료] jsoup
 
+    //[시작] websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    //[종료] websocket
+
 }
 
 test {

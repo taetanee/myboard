@@ -7,6 +7,7 @@ import com.web.common.MyException;
 import com.web.common.util.CommonUtil;
 import com.web.common.util.RedisUtil;
 import com.web.mapper.OnlineClipboardMapper;
+import com.web.websocket.ClipboardWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -40,6 +41,9 @@ public class OnlineClipboardService {
 
 	@Autowired
 	private RedisUtil redisUtil;
+
+	@Autowired
+	private ClipboardWebSocketHandler clipboardWebSocketHandler;
 
 	private static final String UPLOAD_DIR = "C:/uploads/";
 
@@ -107,6 +111,8 @@ public class OnlineClipboardService {
 		param.transferTo(new File(filePath));
 
 		result.put("fileName", param.getOriginalFilename());
+
+		clipboardWebSocketHandler.broadcastFileList(randomWord, getFileList(randomWord));
 		return result;
 	}
 
@@ -137,6 +143,8 @@ public class OnlineClipboardService {
 		if (!file.delete()) {
 			throw new Exception("파일 삭제 실패: " + fileName);
 		}
+
+		clipboardWebSocketHandler.broadcastFileList(randomWord, getFileList(randomWord));
 	}
 
 	public HashMap<String, Object> migrateData(HashMap<String, Object> param) throws Exception {
