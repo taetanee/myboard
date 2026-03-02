@@ -159,7 +159,15 @@ public class OnlineClipboardService {
 			redisUtil.deleteValues(oldWord);
 		}
 
-		// 2. 파일시스템 디렉토리 마이그레이션
+		// 2. Dashboard preferences 마이그레이션
+		String prefKey = "dashboard:pref:" + oldWord;
+		String prefVal = redisUtil.getValues(prefKey);
+		if (prefVal != null && !prefVal.isEmpty()) {
+			redisUtil.setValues("dashboard:pref:" + newWord, prefVal);
+			redisUtil.deleteValues(prefKey);
+		}
+
+		// 3. 파일시스템 디렉토리 마이그레이션
 		File oldDir = new File(UPLOAD_DIR + oldWord + "/");
 		if (oldDir.exists() && oldDir.isDirectory()) {
 			File newDir = new File(UPLOAD_DIR + newWord + "/");

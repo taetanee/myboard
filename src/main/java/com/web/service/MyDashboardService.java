@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -627,6 +628,26 @@ public class MyDashboardService {
 			result.put("error", e.getMessage());
 		}
 		return result;
+	}
+
+	public Map<String, Object> getDashboardPreferences(String randomWord) throws Exception {
+		String key = "dashboard:pref:" + randomWord;
+		String val = redisUtil.getValues(key);
+		if (val != null && !val.isEmpty()) {
+			return objectMapper.readValue(val, Map.class);
+		}
+		Map<String, Object> defaults = new HashMap<>();
+		defaults.put("bookmarks", new ArrayList<>(Arrays.asList("weather", "dust", "snp500", "exchange", "feargreed", "vix")));
+		defaults.put("customStocks", new ArrayList<>());
+		return defaults;
+	}
+
+	public void saveDashboardPreferences(String randomWord, Map<String, Object> prefs) throws Exception {
+		String key = "dashboard:pref:" + randomWord;
+		Map<String, Object> toSave = new HashMap<>();
+		toSave.put("bookmarks", prefs.get("bookmarks"));
+		toSave.put("customStocks", prefs.get("customStocks"));
+		redisUtil.setValues(key, objectMapper.writeValueAsString(toSave));
 	}
 
 	public Map<String, Object> getVixIndex() {
