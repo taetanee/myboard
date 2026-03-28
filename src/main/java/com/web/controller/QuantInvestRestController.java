@@ -22,15 +22,16 @@ public class QuantInvestRestController {
 
     /**
      * 스크리닝 결과 목록 (페이징)
-     * page: 0-based, size: 한 페이지 당 개수, sector: 섹터 필터 (ALL or 섹터명)
+     * page: 0-based, size: 한 페이지 당 개수, sector: 섹터 필터, search: 종목코드/기업명 검색
      */
     @GetMapping("/getList")
     public ResponseEntity<?> getList(
             @RequestParam(defaultValue = "0")   int page,
             @RequestParam(defaultValue = "20")  int size,
-            @RequestParam(defaultValue = "ALL") String sector) {
+            @RequestParam(defaultValue = "ALL") String sector,
+            @RequestParam(defaultValue = "")    String search) {
         try {
-            return ResponseEntity.ok(quantInvestService.getScreeningList(page, size, sector));
+            return ResponseEntity.ok(quantInvestService.getScreeningList(page, size, sector, search));
         } catch (Exception e) {
             return error(e);
         }
@@ -41,9 +42,10 @@ public class QuantInvestRestController {
     public ResponseEntity<?> getSuperQuantList(
             @RequestParam(defaultValue = "0")   int page,
             @RequestParam(defaultValue = "20")  int size,
-            @RequestParam(defaultValue = "ALL") String sector) {
+            @RequestParam(defaultValue = "ALL") String sector,
+            @RequestParam(defaultValue = "")    String search) {
         try {
-            return ResponseEntity.ok(quantInvestService.getSuperQuantList(page, size, sector));
+            return ResponseEntity.ok(quantInvestService.getSuperQuantList(page, size, sector, search));
         } catch (Exception e) {
             return error(e);
         }
@@ -54,9 +56,10 @@ public class QuantInvestRestController {
     public ResponseEntity<?> getMagicFormulaList(
             @RequestParam(defaultValue = "0")   int page,
             @RequestParam(defaultValue = "20")  int size,
-            @RequestParam(defaultValue = "ALL") String sector) {
+            @RequestParam(defaultValue = "ALL") String sector,
+            @RequestParam(defaultValue = "")    String search) {
         try {
-            return ResponseEntity.ok(quantInvestService.getMagicFormulaList(page, size, sector));
+            return ResponseEntity.ok(quantInvestService.getMagicFormulaList(page, size, sector, search));
         } catch (Exception e) {
             return error(e);
         }
@@ -67,9 +70,10 @@ public class QuantInvestRestController {
     public ResponseEntity<?> getCombinedList(
             @RequestParam(defaultValue = "0")   int page,
             @RequestParam(defaultValue = "20")  int size,
-            @RequestParam(defaultValue = "ALL") String sector) {
+            @RequestParam(defaultValue = "ALL") String sector,
+            @RequestParam(defaultValue = "")    String search) {
         try {
-            return ResponseEntity.ok(quantInvestService.getCombinedRankingList(page, size, sector));
+            return ResponseEntity.ok(quantInvestService.getCombinedRankingList(page, size, sector, search));
         } catch (Exception e) {
             return error(e);
         }

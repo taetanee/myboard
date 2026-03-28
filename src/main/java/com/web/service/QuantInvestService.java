@@ -391,20 +391,20 @@ public class QuantInvestService {
     // ─────────────────────────────────────────────
     //  페이징 조회 (공통)
     // ─────────────────────────────────────────────
-    public Map<String, Object> getScreeningList(int page, int size, String sector) throws Exception {
-        return pagedResult(KEY_VALUE_LIST, page, size, sector);
+    public Map<String, Object> getScreeningList(int page, int size, String sector, String search) throws Exception {
+        return pagedResult(KEY_VALUE_LIST, page, size, sector, search);
     }
 
-    public Map<String, Object> getSuperQuantList(int page, int size, String sector) throws Exception {
-        return pagedResult(KEY_SUPER_LIST, page, size, sector);
+    public Map<String, Object> getSuperQuantList(int page, int size, String sector, String search) throws Exception {
+        return pagedResult(KEY_SUPER_LIST, page, size, sector, search);
     }
 
-    public Map<String, Object> getMagicFormulaList(int page, int size, String sector) throws Exception {
-        return pagedResult(KEY_MAGIC_LIST, page, size, sector);
+    public Map<String, Object> getMagicFormulaList(int page, int size, String sector, String search) throws Exception {
+        return pagedResult(KEY_MAGIC_LIST, page, size, sector, search);
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getCombinedRankingList(int page, int size, String sector) throws Exception {
+    public Map<String, Object> getCombinedRankingList(int page, int size, String sector, String search) throws Exception {
         String valueJson = commonUtil.getCache(KEY_VALUE_LIST);
         String superJson = commonUtil.getCache(KEY_SUPER_LIST);
         String magicJson = commonUtil.getCache(KEY_MAGIC_LIST);
@@ -463,6 +463,14 @@ public class QuantInvestService {
                     .collect(Collectors.toList());
         }
 
+        if (search != null && !search.trim().isEmpty()) {
+            String q = search.trim().toLowerCase();
+            filtered = filtered.stream()
+                    .filter(r -> String.valueOf(r.get("symbol")).toLowerCase().contains(q)
+                              || String.valueOf(r.get("name")).toLowerCase().contains(q))
+                    .collect(Collectors.toList());
+        }
+
         int total = filtered.size(), totalPages = (total + size - 1) / size;
         int from  = Math.min(page * size, total), to = Math.min(from + size, total);
 
@@ -486,7 +494,7 @@ public class QuantInvestService {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> pagedResult(String key, int page, int size, String sector) throws Exception {
+    private Map<String, Object> pagedResult(String key, int page, int size, String sector, String search) throws Exception {
         String listJson = commonUtil.getCache(key);
         String metaJson = commonUtil.getCache(KEY_META);
 
@@ -505,6 +513,14 @@ public class QuantInvestService {
         if (sector != null && !sector.isEmpty() && !"ALL".equals(sector)) {
             all = all.stream()
                     .filter(s -> sector.equalsIgnoreCase((String) s.get("sector")))
+                    .collect(Collectors.toList());
+        }
+
+        if (search != null && !search.trim().isEmpty()) {
+            String q = search.trim().toLowerCase();
+            all = all.stream()
+                    .filter(s -> String.valueOf(s.get("symbol")).toLowerCase().contains(q)
+                              || String.valueOf(s.get("name")).toLowerCase().contains(q))
                     .collect(Collectors.toList());
         }
 
