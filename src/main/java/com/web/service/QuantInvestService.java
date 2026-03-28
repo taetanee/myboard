@@ -29,11 +29,12 @@ public class QuantInvestService {
     private static final Random RNG = new Random();
 
     // Redis 키
-    private static final String KEY_VALUE_LIST = "quantInvest:value:list";
-    private static final String KEY_SUPER_LIST = "quantInvest:super:list";
-    private static final String KEY_MAGIC_LIST = "quantInvest:magic:list";
-    private static final String KEY_META       = "quantInvest:meta";
-    private static final int    CACHE_TTL      = 6 * 60 * 60; // 6시간
+    private static final String KEY_VALUE_LIST    = "quantInvest:value:list";
+    private static final String KEY_QUALITY_LIST  = "quantInvest:quality:list";
+    private static final String KEY_MOMENTUM_LIST = "quantInvest:momentum:list";
+    private static final String KEY_SMALLCAP_LIST = "quantInvest:smallcap:list";
+    private static final String KEY_META          = "quantInvest:meta";
+    private static final int    CACHE_TTL         = 6 * 60 * 60; // 6시간
 
     private static final String UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -85,7 +86,7 @@ public class QuantInvestService {
     }
 
     // ─────────────────────────────────────────────
-    //  전체 수집 · 세 전략 동시 저장
+    //  전체 수집 · 네 전략 동시 저장
     // ─────────────────────────────────────────────
     public Map<String, Object> refreshData() throws Exception {
         List<Map<String, String>> tickerList = scrapeSpTickers();
@@ -114,7 +115,6 @@ public class QuantInvestService {
                 log.warn("[QuantInvest] [{}/{}] {} 실패: {}", i + 1, tickerList.size(), ticker, e.getMessage());
             }
 
-            // 랜덤 딜레이 700~1300ms, 20개마다 +3~6초
             long delay = 700 + RNG.nextInt(600);
             if ((i + 1) % 20 == 0) {
                 delay += 3000 + RNG.nextInt(3000);
@@ -123,49 +123,51 @@ public class QuantInvestService {
             Thread.sleep(delay);
         }
 
-        // ① 가치 투자 스크리닝: Low PER + Low PBR
+        // ① 가치 전략: Low PER + Low PBR
         List<Map<String, Object>> valueList = scoreValue(
-                raw.stream()
-                   .filter(s -> pe(s) > 0 && pb(s) > 0)
-                   .map(LinkedHashMap::new)
-                   .collect(Collectors.toList())
+                raw.stream().filter(s -> pe(s) > 0 && pb(s) > 0)
+                   .map(LinkedHashMap::new).collect(Collectors.toList())
         );
 
-        // ② 슈퍼 퀀트 전략: Low PBR + High GP/A (없으면 High ROE)
-        List<Map<String, Object>> superList = scoreSuperQuant(
-                raw.stream()
-                   .filter(s -> pb(s) > 0 && (gpa(s) > 0 || roe(s) > 0))
-                   .map(LinkedHashMap::new)
-                   .collect(Collectors.toList())
+        // ② 퀄리티 전략: High ROE + High GP/A
+        List<Map<String, Object>> qualityList = scoreQuality(
+                raw.stream().filter(s -> roe(s) > 0 || gpa(s) > 0)
+                   .map(LinkedHashMap::new).collect(Collectors.toList())
         );
 
-        // ③ 마법공식: High Earnings Yield + High ROA
-        List<Map<String, Object>> magicList = scoreMagicFormula(
-                raw.stream()
-                   .filter(s -> ey(s) > 0 && roa(s) > 0)
-                   .map(LinkedHashMap::new)
-                   .collect(Collectors.toList())
+        // ③ 모멘텀 전략: High 52-week Return + High Revenue Growth
+        List<Map<String, Object>> momentumList = scoreMomentum(
+                raw.stream().filter(s -> w52(s) != 0 && revGrowth(s) != 0)
+                   .map(LinkedHashMap::new).collect(Collectors.toList())
         );
 
-        commonUtil.setCache(KEY_VALUE_LIST, objectMapper.writeValueAsString(valueList), CACHE_TTL);
-        commonUtil.setCache(KEY_SUPER_LIST, objectMapper.writeValueAsString(superList), CACHE_TTL);
-        commonUtil.setCache(KEY_MAGIC_LIST, objectMapper.writeValueAsString(magicList), CACHE_TTL);
+        // ④ 소형주 전략: Low Market Cap + High Revenue Growth
+        List<Map<String, Object>> smallCapList = scoreSmallCap(
+                raw.stream().filter(s -> mc(s) > 0 && revGrowth(s) != 0)
+                   .map(LinkedHashMap::new).collect(Collectors.toList())
+        );
+
+        commonUtil.setCache(KEY_VALUE_LIST,    objectMapper.writeValueAsString(valueList),    CACHE_TTL);
+        commonUtil.setCache(KEY_QUALITY_LIST,  objectMapper.writeValueAsString(qualityList),  CACHE_TTL);
+        commonUtil.setCache(KEY_MOMENTUM_LIST, objectMapper.writeValueAsString(momentumList), CACHE_TTL);
+        commonUtil.setCache(KEY_SMALLCAP_LIST, objectMapper.writeValueAsString(smallCapList), CACHE_TTL);
 
         Map<String, Object> meta = new LinkedHashMap<>();
-        meta.put("updatedAt",       CommonUtil.formatNow("yyyy-MM-dd HH:mm:ss"));
-        meta.put("totalCount",      valueList.size());
-        meta.put("superQuantCount", superList.size());
-        meta.put("magicCount",      magicList.size());
-        meta.put("status",          "OK");
+        meta.put("updatedAt",      CommonUtil.formatNow("yyyy-MM-dd HH:mm:ss"));
+        meta.put("valueCount",     valueList.size());
+        meta.put("qualityCount",   qualityList.size());
+        meta.put("momentumCount",  momentumList.size());
+        meta.put("smallCapCount",  smallCapList.size());
+        meta.put("status",         "OK");
         commonUtil.setCache(KEY_META, objectMapper.writeValueAsString(meta), CACHE_TTL);
 
-        log.info("[QuantInvest] 완료 - 가치{}개 슈퍼퀀트{}개 마법공식{}개",
-                valueList.size(), superList.size(), magicList.size());
+        log.info("[QuantInvest] 완료 - 가치{}개 퀄리티{}개 모멘텀{}개 소형주{}개",
+                valueList.size(), qualityList.size(), momentumList.size(), smallCapList.size());
         return meta;
     }
 
     // ─────────────────────────────────────────────
-    //  개별 종목 펀더멘털 (단일 요청으로 전체 모듈)
+    //  개별 종목 펀더멘털
     // ─────────────────────────────────────────────
     private Map<String, Object> fetchFundamentals(String ticker) throws Exception {
         String encoded    = URLEncoder.encode(ticker, "UTF-8");
@@ -208,14 +210,13 @@ public class QuantInvestService {
 
         double pe = extractRaw(sd,  "trailingPE");
         double pb = extractRaw(dks, "priceToBook");
-        double mc = extractRaw(sd,  "marketCap");
+        double mcap = extractRaw(sd, "marketCap");
 
         double currentPrice = price != null ? extractRaw(price, "regularMarketPrice") : 0;
         String name         = price != null ? price.optString("shortName", ticker)    : ticker;
         String sector       = price != null ? price.optString("sector", "-")          : "-";
 
         double roe = fd != null ? extractRaw(fd, "returnOnEquity") * 100.0 : 0;
-        double roa = fd != null ? extractRaw(fd, "returnOnAssets") * 100.0 : 0;
 
         double gpa = 0;
         if (fd != null && bsh != null) {
@@ -227,29 +228,28 @@ public class QuantInvestService {
                 gpa = grossProfits / totalAssets * 100.0;
         }
 
-        double evToEbitda    = extractRaw(dks, "enterpriseToEbitda");
-        double earningsYield = (evToEbitda > 0) ? (1.0 / evToEbitda) * 100.0 : 0;
+        double fiftyTwoWeekChange = extractRaw(dks, "52WeekChange") * 100.0;
+        double revenueGrowth      = fd != null ? extractRaw(fd, "revenueGrowth") * 100.0 : 0;
 
         if (pb <= 0 && pe <= 0) return null;
 
         Map<String, Object> stock = new LinkedHashMap<>();
-        stock.put("symbol",        ticker);
-        stock.put("name",          name);
-        stock.put("sector",        sector);
-        stock.put("price",         round2(currentPrice));
-        stock.put("pe",            round2(pe));
-        stock.put("pb",            round2(pb));
-        stock.put("roe",           round2(roe));
-        stock.put("roa",           round2(roa));
-        stock.put("gpa",           round2(gpa));
-        stock.put("evToEbitda",    round2(evToEbitda));
-        stock.put("earningsYield", round2(earningsYield));
-        stock.put("marketCap",     (long) mc);
+        stock.put("symbol",             ticker);
+        stock.put("name",               name);
+        stock.put("sector",             sector);
+        stock.put("price",              round2(currentPrice));
+        stock.put("pe",                 round2(pe));
+        stock.put("pb",                 round2(pb));
+        stock.put("roe",                round2(roe));
+        stock.put("gpa",                round2(gpa));
+        stock.put("fiftyTwoWeekChange", round2(fiftyTwoWeekChange));
+        stock.put("revenueGrowth",      round2(revenueGrowth));
+        stock.put("marketCap",          (long) mcap);
         return stock;
     }
 
     // ─────────────────────────────────────────────
-    //  ① 가치 투자 스크리닝: Low PER + Low PBR
+    //  ① 가치 전략: Low PER + Low PBR
     // ─────────────────────────────────────────────
     private List<Map<String, Object>> scoreValue(List<Map<String, Object>> stocks) {
         int n = stocks.size();
@@ -279,78 +279,107 @@ public class QuantInvestService {
     }
 
     // ─────────────────────────────────────────────
-    //  ② 슈퍼 퀀트 전략: Low PBR + High GP/A (없으면 High ROE)
+    //  ② 퀄리티 전략: High ROE + High GP/A
     // ─────────────────────────────────────────────
-    private List<Map<String, Object>> scoreSuperQuant(List<Map<String, Object>> stocks) {
+    private List<Map<String, Object>> scoreQuality(List<Map<String, Object>> stocks) {
         int n = stocks.size();
         if (n == 0) return stocks;
 
-        for (Map<String, Object> s : stocks) {
-            if (gpa(s) > 0) {
-                s.put("qualityMetric", round2(gpa(s)));
-                s.put("qualityLabel",  "GP/A");
-            } else {
-                s.put("qualityMetric", round2(roe(s)));
-                s.put("qualityLabel",  "ROE");
-            }
-        }
+        // ROE 내림차순
+        List<Map<String, Object>> byRoe = stocks.stream()
+                .sorted(Comparator.comparingDouble(s -> -roe(s))).collect(Collectors.toList());
+        // GP/A 내림차순
+        List<Map<String, Object>> byGpa = stocks.stream()
+                .sorted(Comparator.comparingDouble(s -> -gpa(s))).collect(Collectors.toList());
 
-        List<Map<String, Object>> byPb = stocks.stream()
-                .sorted(Comparator.comparingDouble(s -> pb(s))).collect(Collectors.toList());
-        List<Map<String, Object>> byQ = stocks.stream()
-                .sorted(Comparator.comparingDouble(s -> -dbl(s, "qualityMetric"))).collect(Collectors.toList());
-
-        Map<String, Integer> rankPb = new HashMap<>(), rankQ = new HashMap<>();
-        for (int i = 0; i < n; i++) rankPb.put(sym(byPb.get(i)), i + 1);
-        for (int i = 0; i < n; i++) rankQ.put(sym(byQ.get(i)),   i + 1);
+        Map<String, Integer> rankRoe = new HashMap<>(), rankGpa = new HashMap<>();
+        for (int i = 0; i < n; i++) rankRoe.put(sym(byRoe.get(i)), i + 1);
+        for (int i = 0; i < n; i++) rankGpa.put(sym(byGpa.get(i)), i + 1);
 
         for (Map<String, Object> s : stocks) {
-            int rpb = rankPb.getOrDefault(sym(s), n);
-            int rq  = rankQ.getOrDefault(sym(s),  n);
-            double valueScore   = (double)(n - rpb + 1) / n * 100.0;
-            double qualityScore = (double)(n - rq  + 1) / n * 100.0;
-            double combined     = (valueScore + qualityScore) / 2.0;
-            s.put("valueScore",    round2(valueScore));
-            s.put("qualityScore",  round2(qualityScore));
-            s.put("combinedScore", round2(combined));
+            int rroe = rankRoe.getOrDefault(sym(s), n);
+            int rgpa = rankGpa.getOrDefault(sym(s), n);
+            double roeScore = (double)(n - rroe + 1) / n * 100.0;
+            double gpaScore = (double)(n - rgpa + 1) / n * 100.0;
+            // GP/A 데이터가 없으면 ROE 점수만 사용
+            double qualityScore = gpa(s) > 0 ? (roeScore + gpaScore) / 2.0 : roeScore;
+            s.put("roeScore",     round2(roeScore));
+            s.put("gpaScore",     round2(gpaScore));
+            s.put("qualityScore", round2(qualityScore));
         }
 
         List<Map<String, Object>> sorted = stocks.stream()
-                .sorted(Comparator.comparingDouble(s -> -dbl(s, "combinedScore")))
+                .sorted(Comparator.comparingDouble(s -> -dbl(s, "qualityScore")))
                 .collect(Collectors.toList());
         for (int i = 0; i < sorted.size(); i++) sorted.get(i).put("rank", i + 1);
         return sorted;
     }
 
     // ─────────────────────────────────────────────
-    //  ③ 마법공식: High Earnings Yield + High ROA
+    //  ③ 모멘텀 전략: High 52-week Return + High Revenue Growth
     // ─────────────────────────────────────────────
-    private List<Map<String, Object>> scoreMagicFormula(List<Map<String, Object>> stocks) {
+    private List<Map<String, Object>> scoreMomentum(List<Map<String, Object>> stocks) {
         int n = stocks.size();
         if (n == 0) return stocks;
 
-        List<Map<String, Object>> byEy = stocks.stream()
-                .sorted(Comparator.comparingDouble(s -> -ey(s))).collect(Collectors.toList());
-        List<Map<String, Object>> byRoa = stocks.stream()
-                .sorted(Comparator.comparingDouble(s -> -roa(s))).collect(Collectors.toList());
+        List<Map<String, Object>> byW52 = stocks.stream()
+                .sorted(Comparator.comparingDouble(s -> -w52(s))).collect(Collectors.toList());
+        List<Map<String, Object>> byRev = stocks.stream()
+                .sorted(Comparator.comparingDouble(s -> -revGrowth(s))).collect(Collectors.toList());
 
-        Map<String, Integer> rankEy = new HashMap<>(), rankRoa = new HashMap<>();
-        for (int i = 0; i < n; i++) rankEy.put(sym(byEy.get(i)),   i + 1);
-        for (int i = 0; i < n; i++) rankRoa.put(sym(byRoa.get(i)), i + 1);
+        Map<String, Integer> rankW52 = new HashMap<>(), rankRev = new HashMap<>();
+        for (int i = 0; i < n; i++) rankW52.put(sym(byW52.get(i)), i + 1);
+        for (int i = 0; i < n; i++) rankRev.put(sym(byRev.get(i)),  i + 1);
 
         for (Map<String, Object> s : stocks) {
-            int rey  = rankEy.getOrDefault(sym(s),  n);
-            int rroa = rankRoa.getOrDefault(sym(s), n);
-            double earningsScore   = (double)(n - rey  + 1) / n * 100.0;
-            double efficiencyScore = (double)(n - rroa + 1) / n * 100.0;
-            double magicScore      = (earningsScore + efficiencyScore) / 2.0;
-            s.put("earningsScore",   round2(earningsScore));
-            s.put("efficiencyScore", round2(efficiencyScore));
-            s.put("magicScore",      round2(magicScore));
+            int rw52 = rankW52.getOrDefault(sym(s), n);
+            int rrev = rankRev.getOrDefault(sym(s), n);
+            double priceScore    = (double)(n - rw52 + 1) / n * 100.0;
+            double growthScore   = (double)(n - rrev + 1) / n * 100.0;
+            double momentumScore = (priceScore + growthScore) / 2.0;
+            s.put("priceScore",    round2(priceScore));
+            s.put("growthScore",   round2(growthScore));
+            s.put("momentumScore", round2(momentumScore));
         }
 
         List<Map<String, Object>> sorted = stocks.stream()
-                .sorted(Comparator.comparingDouble(s -> -dbl(s, "magicScore")))
+                .sorted(Comparator.comparingDouble(s -> -dbl(s, "momentumScore")))
+                .collect(Collectors.toList());
+        for (int i = 0; i < sorted.size(); i++) sorted.get(i).put("rank", i + 1);
+        return sorted;
+    }
+
+    // ─────────────────────────────────────────────
+    //  ④ 소형주 전략: Low Market Cap + High Revenue Growth
+    // ─────────────────────────────────────────────
+    private List<Map<String, Object>> scoreSmallCap(List<Map<String, Object>> stocks) {
+        int n = stocks.size();
+        if (n == 0) return stocks;
+
+        // 시가총액 오름차순 (낮을수록 소형주 = 좋음)
+        List<Map<String, Object>> byMc = stocks.stream()
+                .sorted(Comparator.comparingLong(s -> mc(s))).collect(Collectors.toList());
+        // 매출 성장률 내림차순 (높을수록 좋음)
+        List<Map<String, Object>> byRev = stocks.stream()
+                .sorted(Comparator.comparingDouble(s -> -revGrowth(s))).collect(Collectors.toList());
+
+        Map<String, Integer> rankMc = new HashMap<>(), rankRev = new HashMap<>();
+        for (int i = 0; i < n; i++) rankMc.put(sym(byMc.get(i)),   i + 1);
+        for (int i = 0; i < n; i++) rankRev.put(sym(byRev.get(i)), i + 1);
+
+        for (Map<String, Object> s : stocks) {
+            int rmc  = rankMc.getOrDefault(sym(s),  n);
+            int rrev = rankRev.getOrDefault(sym(s), n);
+            double smallScore  = (double)(n - rmc  + 1) / n * 100.0;
+            double growthScore = (double)(n - rrev + 1) / n * 100.0;
+            double smallCapScore = (smallScore + growthScore) / 2.0;
+            s.put("smallScore",    round2(smallScore));
+            s.put("growthScore",   round2(growthScore));
+            s.put("smallCapScore", round2(smallCapScore));
+        }
+
+        List<Map<String, Object>> sorted = stocks.stream()
+                .sorted(Comparator.comparingDouble(s -> -dbl(s, "smallCapScore")))
                 .collect(Collectors.toList());
         for (int i = 0; i < sorted.size(); i++) sorted.get(i).put("rank", i + 1);
         return sorted;
@@ -395,22 +424,27 @@ public class QuantInvestService {
         return pagedResult(KEY_VALUE_LIST, page, size, sector, search);
     }
 
-    public Map<String, Object> getSuperQuantList(int page, int size, String sector, String search) throws Exception {
-        return pagedResult(KEY_SUPER_LIST, page, size, sector, search);
+    public Map<String, Object> getQualityList(int page, int size, String sector, String search) throws Exception {
+        return pagedResult(KEY_QUALITY_LIST, page, size, sector, search);
     }
 
-    public Map<String, Object> getMagicFormulaList(int page, int size, String sector, String search) throws Exception {
-        return pagedResult(KEY_MAGIC_LIST, page, size, sector, search);
+    public Map<String, Object> getMomentumList(int page, int size, String sector, String search) throws Exception {
+        return pagedResult(KEY_MOMENTUM_LIST, page, size, sector, search);
+    }
+
+    public Map<String, Object> getSmallCapList(int page, int size, String sector, String search) throws Exception {
+        return pagedResult(KEY_SMALLCAP_LIST, page, size, sector, search);
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getCombinedRankingList(int page, int size, String sector, String search) throws Exception {
-        String valueJson = commonUtil.getCache(KEY_VALUE_LIST);
-        String superJson = commonUtil.getCache(KEY_SUPER_LIST);
-        String magicJson = commonUtil.getCache(KEY_MAGIC_LIST);
-        String metaJson  = commonUtil.getCache(KEY_META);
+        String valueJson    = commonUtil.getCache(KEY_VALUE_LIST);
+        String qualityJson  = commonUtil.getCache(KEY_QUALITY_LIST);
+        String momentumJson = commonUtil.getCache(KEY_MOMENTUM_LIST);
+        String smallCapJson = commonUtil.getCache(KEY_SMALLCAP_LIST);
+        String metaJson     = commonUtil.getCache(KEY_META);
 
-        if (valueJson == null || superJson == null || magicJson == null) {
+        if (valueJson == null || qualityJson == null || momentumJson == null || smallCapJson == null) {
             Map<String, Object> res = new HashMap<>();
             res.put("items", Collections.emptyList());
             res.put("totalCount", 0); res.put("page", page);
@@ -420,49 +454,63 @@ public class QuantInvestService {
         }
 
         TypeReference<List<Map<String, Object>>> tr = new TypeReference<List<Map<String, Object>>>(){};
-        Map<String, Map<String, Object>> valueMap = toSymbolMap(objectMapper.readValue(valueJson, tr));
-        Map<String, Map<String, Object>> superMap = toSymbolMap(objectMapper.readValue(superJson, tr));
-        Map<String, Map<String, Object>> magicMap = toSymbolMap(objectMapper.readValue(magicJson, tr));
+        List<Map<String, Object>> valueAll = objectMapper.readValue(valueJson, tr);
+        Map<String, Map<String, Object>> valueMap    = toSymbolMap(valueAll);
+        Map<String, Map<String, Object>> qualityMap  = toSymbolMap(objectMapper.readValue(qualityJson, tr));
+        Map<String, Map<String, Object>> momentumMap = toSymbolMap(objectMapper.readValue(momentumJson, tr));
+        Map<String, Map<String, Object>> smallCapMap = toSymbolMap(objectMapper.readValue(smallCapJson, tr));
 
-        // 세 전략 모두 존재하는 종목만 (inner join)
+        // S&P 500 전체 시가총액 순위
+        Map<String, Integer> mcapRankMap = new HashMap<>();
+        List<Map<String, Object>> byMcap = valueAll.stream()
+                .sorted(Comparator.comparingLong(s -> {
+                    Object v = s.get("marketCap");
+                    return v instanceof Number ? -((Number) v).longValue() : 0L;
+                }))
+                .collect(Collectors.toList());
+        for (int i = 0; i < byMcap.size(); i++) mcapRankMap.put(sym(byMcap.get(i)), i + 1);
+
+        // 네 전략 모두 존재하는 종목만 (inner join)
         List<Map<String, Object>> combined = new ArrayList<>();
         for (String symbol : valueMap.keySet()) {
-            if (!superMap.containsKey(symbol) || !magicMap.containsKey(symbol)) continue;
+            if (!qualityMap.containsKey(symbol) || !momentumMap.containsKey(symbol)
+                    || !smallCapMap.containsKey(symbol)) continue;
 
-            Map<String, Object> v = valueMap.get(symbol);
-            Map<String, Object> s = superMap.get(symbol);
-            Map<String, Object> m = magicMap.get(symbol);
+            Map<String, Object> v  = valueMap.get(symbol);
+            Map<String, Object> q  = qualityMap.get(symbol);
+            Map<String, Object> mo = momentumMap.get(symbol);
+            Map<String, Object> sc = smallCapMap.get(symbol);
 
-            double vs = dbl(v, "valueScore");
-            double ss = dbl(s, "combinedScore");
-            double ms = dbl(m, "magicScore");
-            double totalScore = (vs + ss + ms) / 3.0;
+            double vs   = dbl(v,  "valueScore");
+            double qs   = dbl(q,  "qualityScore");
+            double mos  = dbl(mo, "momentumScore");
+            double scs  = dbl(sc, "smallCapScore");
+            double totalScore = (vs + qs + mos + scs) / 4.0;
 
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("symbol",      symbol);
-            row.put("name",        v.get("name"));
-            row.put("sector",      v.get("sector"));
-            row.put("price",       v.get("price"));
-            row.put("marketCap",   v.get("marketCap"));
-            row.put("valueScore",  round2(vs));
-            row.put("superScore",  round2(ss));
-            row.put("magicScore",  round2(ms));
-            row.put("totalScore",  round2(totalScore));
+            row.put("symbol",        symbol);
+            row.put("name",          v.get("name"));
+            row.put("sector",        v.get("sector"));
+            row.put("price",         v.get("price"));
+            row.put("marketCap",     v.get("marketCap"));
+            row.put("mcapRank",      mcapRankMap.getOrDefault(symbol, 0));
+            row.put("valueScore",    round2(vs));
+            row.put("qualityScore",  round2(qs));
+            row.put("momentumScore", round2(mos));
+            row.put("smallCapScore", round2(scs));
+            row.put("totalScore",    round2(totalScore));
             combined.add(row);
         }
 
-        // 총합점수 내림차순 정렬 → 전체 순위 부여
         combined.sort(Comparator.comparingDouble(r -> -dbl(r, "totalScore")));
         for (int i = 0; i < combined.size(); i++) combined.get(i).put("rank", i + 1);
 
-        // 섹터 필터 (순위는 전체 기준 유지)
         List<Map<String, Object>> filtered = combined;
         if (sector != null && !sector.isEmpty() && !"ALL".equals(sector)) {
             filtered = combined.stream()
                     .filter(r -> sector.equalsIgnoreCase((String) r.get("sector")))
                     .collect(Collectors.toList());
         }
-
         if (search != null && !search.trim().isEmpty()) {
             String q = search.trim().toLowerCase();
             filtered = filtered.stream()
@@ -515,7 +563,6 @@ public class QuantInvestService {
                     .filter(s -> sector.equalsIgnoreCase((String) s.get("sector")))
                     .collect(Collectors.toList());
         }
-
         if (search != null && !search.trim().isEmpty()) {
             String q = search.trim().toLowerCase();
             all = all.stream()
@@ -542,9 +589,10 @@ public class QuantInvestService {
 
     @SuppressWarnings("unchecked")
     public List<String> getSectors(String strategy) throws Exception {
-        String key = "super".equals(strategy)     ? KEY_SUPER_LIST
-                   : "magic".equals(strategy)     ? KEY_MAGIC_LIST
-                   : KEY_VALUE_LIST; // value, combined 모두 value 기준 섹터 사용
+        String key = "quality".equals(strategy)   ? KEY_QUALITY_LIST
+                   : "momentum".equals(strategy)  ? KEY_MOMENTUM_LIST
+                   : "smallcap".equals(strategy)  ? KEY_SMALLCAP_LIST
+                   : KEY_VALUE_LIST;
         String listJson = commonUtil.getCache(key);
         if (listJson == null) return Collections.emptyList();
         List<Map<String, Object>> all = objectMapper.readValue(listJson,
@@ -594,13 +642,14 @@ public class QuantInvestService {
         return 0;
     }
 
-    private double pe(Map<String, Object> s)  { return dbl(s, "pe");  }
-    private double pb(Map<String, Object> s)  { return dbl(s, "pb");  }
-    private double roe(Map<String, Object> s) { return dbl(s, "roe"); }
-    private double roa(Map<String, Object> s) { return dbl(s, "roa"); }
-    private double ey(Map<String, Object> s)  { return dbl(s, "earningsYield"); }
-    private double gpa(Map<String, Object> s) { return dbl(s, "gpa"); }
-    private String sym(Map<String, Object> s) { return (String) s.get("symbol"); }
+    private double pe(Map<String, Object> s)        { return dbl(s, "pe"); }
+    private double pb(Map<String, Object> s)        { return dbl(s, "pb"); }
+    private double roe(Map<String, Object> s)       { return dbl(s, "roe"); }
+    private double gpa(Map<String, Object> s)       { return dbl(s, "gpa"); }
+    private double w52(Map<String, Object> s)       { return dbl(s, "fiftyTwoWeekChange"); }
+    private double revGrowth(Map<String, Object> s) { return dbl(s, "revenueGrowth"); }
+    private long   mc(Map<String, Object> s)        { Object v = s.get("marketCap"); return v instanceof Number ? ((Number)v).longValue() : 0L; }
+    private String sym(Map<String, Object> s)       { return (String) s.get("symbol"); }
     private double dbl(Map<String, Object> s, String k) {
         Object v = s.get(k); return v instanceof Number ? ((Number) v).doubleValue() : 0;
     }

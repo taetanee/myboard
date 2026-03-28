@@ -37,35 +37,49 @@ public class QuantInvestRestController {
         }
     }
 
-    /** 슈퍼 퀀트 목록 (Low PBR + High GP/A or ROE) */
-    @GetMapping("/getSuperQuantList")
-    public ResponseEntity<?> getSuperQuantList(
+    /** 퀄리티 전략 목록 (High ROE + High GP/A) */
+    @GetMapping("/getQualityList")
+    public ResponseEntity<?> getQualityList(
             @RequestParam(defaultValue = "0")   int page,
             @RequestParam(defaultValue = "20")  int size,
             @RequestParam(defaultValue = "ALL") String sector,
             @RequestParam(defaultValue = "")    String search) {
         try {
-            return ResponseEntity.ok(quantInvestService.getSuperQuantList(page, size, sector, search));
+            return ResponseEntity.ok(quantInvestService.getQualityList(page, size, sector, search));
         } catch (Exception e) {
             return error(e);
         }
     }
 
-    /** 마법공식 목록 (High Earnings Yield + High ROA) */
-    @GetMapping("/getMagicFormulaList")
-    public ResponseEntity<?> getMagicFormulaList(
+    /** 소형주 전략 목록 (Low Market Cap + High Revenue Growth) */
+    @GetMapping("/getSmallCapList")
+    public ResponseEntity<?> getSmallCapList(
             @RequestParam(defaultValue = "0")   int page,
             @RequestParam(defaultValue = "20")  int size,
             @RequestParam(defaultValue = "ALL") String sector,
             @RequestParam(defaultValue = "")    String search) {
         try {
-            return ResponseEntity.ok(quantInvestService.getMagicFormulaList(page, size, sector, search));
+            return ResponseEntity.ok(quantInvestService.getSmallCapList(page, size, sector, search));
         } catch (Exception e) {
             return error(e);
         }
     }
 
-    /** 총합 랭킹 목록 (세 전략 점수 평균) */
+    /** 모멘텀 전략 목록 (High 52-week Return + High Revenue Growth) */
+    @GetMapping("/getMomentumList")
+    public ResponseEntity<?> getMomentumList(
+            @RequestParam(defaultValue = "0")   int page,
+            @RequestParam(defaultValue = "20")  int size,
+            @RequestParam(defaultValue = "ALL") String sector,
+            @RequestParam(defaultValue = "")    String search) {
+        try {
+            return ResponseEntity.ok(quantInvestService.getMomentumList(page, size, sector, search));
+        } catch (Exception e) {
+            return error(e);
+        }
+    }
+
+    /** 총합 랭킹 목록 (네 전략 점수 평균) */
     @GetMapping("/getCombinedList")
     public ResponseEntity<?> getCombinedList(
             @RequestParam(defaultValue = "0")   int page,
