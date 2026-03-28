@@ -62,6 +62,19 @@ public class QuantInvestRestController {
         }
     }
 
+    /** 총합 랭킹 목록 (세 전략 점수 평균) */
+    @GetMapping("/getCombinedList")
+    public ResponseEntity<?> getCombinedList(
+            @RequestParam(defaultValue = "0")   int page,
+            @RequestParam(defaultValue = "20")  int size,
+            @RequestParam(defaultValue = "ALL") String sector) {
+        try {
+            return ResponseEntity.ok(quantInvestService.getCombinedRankingList(page, size, sector));
+        } catch (Exception e) {
+            return error(e);
+        }
+    }
+
     /** 섹터 목록 */
     @GetMapping("/getSectors")
     public ResponseEntity<?> getSectors(@RequestParam(defaultValue = "value") String strategy) {

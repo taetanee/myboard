@@ -404,6 +404,88 @@ public class QuantInvestService {
     }
 
     @SuppressWarnings("unchecked")
+    public Map<String, Object> getCombinedRankingList(int page, int size, String sector) throws Exception {
+        String valueJson = commonUtil.getCache(KEY_VALUE_LIST);
+        String superJson = commonUtil.getCache(KEY_SUPER_LIST);
+        String magicJson = commonUtil.getCache(KEY_MAGIC_LIST);
+        String metaJson  = commonUtil.getCache(KEY_META);
+
+        if (valueJson == null || superJson == null || magicJson == null) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("items", Collections.emptyList());
+            res.put("totalCount", 0); res.put("page", page);
+            res.put("size", size);   res.put("totalPages", 0);
+            res.put("updatedAt", null); res.put("status", "NO_DATA");
+            return res;
+        }
+
+        TypeReference<List<Map<String, Object>>> tr = new TypeReference<List<Map<String, Object>>>(){};
+        Map<String, Map<String, Object>> valueMap = toSymbolMap(objectMapper.readValue(valueJson, tr));
+        Map<String, Map<String, Object>> superMap = toSymbolMap(objectMapper.readValue(superJson, tr));
+        Map<String, Map<String, Object>> magicMap = toSymbolMap(objectMapper.readValue(magicJson, tr));
+
+        // 세 전략 모두 존재하는 종목만 (inner join)
+        List<Map<String, Object>> combined = new ArrayList<>();
+        for (String symbol : valueMap.keySet()) {
+            if (!superMap.containsKey(symbol) || !magicMap.containsKey(symbol)) continue;
+
+            Map<String, Object> v = valueMap.get(symbol);
+            Map<String, Object> s = superMap.get(symbol);
+            Map<String, Object> m = magicMap.get(symbol);
+
+            double vs = dbl(v, "valueScore");
+            double ss = dbl(s, "combinedScore");
+            double ms = dbl(m, "magicScore");
+            double totalScore = (vs + ss + ms) / 3.0;
+
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("symbol",      symbol);
+            row.put("name",        v.get("name"));
+            row.put("sector",      v.get("sector"));
+            row.put("price",       v.get("price"));
+            row.put("marketCap",   v.get("marketCap"));
+            row.put("valueScore",  round2(vs));
+            row.put("superScore",  round2(ss));
+            row.put("magicScore",  round2(ms));
+            row.put("totalScore",  round2(totalScore));
+            combined.add(row);
+        }
+
+        // 총합점수 내림차순 정렬 → 전체 순위 부여
+        combined.sort(Comparator.comparingDouble(r -> -dbl(r, "totalScore")));
+        for (int i = 0; i < combined.size(); i++) combined.get(i).put("rank", i + 1);
+
+        // 섹터 필터 (순위는 전체 기준 유지)
+        List<Map<String, Object>> filtered = combined;
+        if (sector != null && !sector.isEmpty() && !"ALL".equals(sector)) {
+            filtered = combined.stream()
+                    .filter(r -> sector.equalsIgnoreCase((String) r.get("sector")))
+                    .collect(Collectors.toList());
+        }
+
+        int total = filtered.size(), totalPages = (total + size - 1) / size;
+        int from  = Math.min(page * size, total), to = Math.min(from + size, total);
+
+        Map<String, Object> meta = metaJson != null
+                ? objectMapper.readValue(metaJson, new TypeReference<Map<String, Object>>(){})
+                : new HashMap<>();
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("items",      filtered.subList(from, to));
+        res.put("totalCount", total); res.put("page", page);
+        res.put("size",       size);  res.put("totalPages", totalPages);
+        res.put("updatedAt",  meta.getOrDefault("updatedAt", null));
+        res.put("status",     "OK");
+        return res;
+    }
+
+    private Map<String, Map<String, Object>> toSymbolMap(List<Map<String, Object>> list) {
+        Map<String, Map<String, Object>> map = new LinkedHashMap<>();
+        for (Map<String, Object> s : list) map.put(sym(s), s);
+        return map;
+    }
+
+    @SuppressWarnings("unchecked")
     private Map<String, Object> pagedResult(String key, int page, int size, String sector) throws Exception {
         String listJson = commonUtil.getCache(key);
         String metaJson = commonUtil.getCache(KEY_META);
@@ -444,9 +526,9 @@ public class QuantInvestService {
 
     @SuppressWarnings("unchecked")
     public List<String> getSectors(String strategy) throws Exception {
-        String key = "super".equals(strategy) ? KEY_SUPER_LIST
-                   : "magic".equals(strategy) ? KEY_MAGIC_LIST
-                   : KEY_VALUE_LIST;
+        String key = "super".equals(strategy)     ? KEY_SUPER_LIST
+                   : "magic".equals(strategy)     ? KEY_MAGIC_LIST
+                   : KEY_VALUE_LIST; // value, combined 모두 value 기준 섹터 사용
         String listJson = commonUtil.getCache(key);
         if (listJson == null) return Collections.emptyList();
         List<Map<String, Object>> all = objectMapper.readValue(listJson,
