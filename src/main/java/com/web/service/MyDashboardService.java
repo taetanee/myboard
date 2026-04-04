@@ -650,6 +650,298 @@ public class MyDashboardService {
 		redisUtil.setValues(key, objectMapper.writeValueAsString(toSave));
 	}
 
+	public List<Map<String, Object>> getWeeklyWeather() {
+		String cacheKey = "cache:weekly_weather_seoul";
+		ObjectMapper mapper = new ObjectMapper();
+
+		try {
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, List.class);
+			}
+
+			URL url = new URL("https://api.open-meteo.com/v1/forecast"
+					+ "?latitude=37.5665&longitude=126.9780"
+					+ "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode"
+					+ "&timezone=Asia%2FSeoul&forecast_days=7");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JsonNode daily = mapper.readTree(sb.toString()).path("daily");
+			JsonNode times     = daily.path("time");
+			JsonNode maxTemps  = daily.path("temperature_2m_max");
+			JsonNode minTemps  = daily.path("temperature_2m_min");
+			JsonNode precipArr = daily.path("precipitation_probability_max");
+			JsonNode codes     = daily.path("weathercode");
+
+			String[] dayNames = {"일", "월", "화", "수", "목", "금", "토"};
+			java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+			List<Map<String, Object>> result = new ArrayList<>();
+			for (int i = 0; i < times.size(); i++) {
+				java.time.LocalDate date = java.time.LocalDate.parse(times.get(i).asText(), fmt);
+				int dow = date.getDayOfWeek().getValue() % 7; // 0=일, 1=월, ..., 6=토
+				int code = codes.get(i).asInt();
+
+				Map<String, Object> day = new HashMap<>();
+				day.put("date",    times.get(i).asText());
+				day.put("day",     dayNames[dow]);
+				day.put("maxTemp", (int) Math.round(maxTemps.get(i).asDouble()));
+				day.put("minTemp", (int) Math.round(minTemps.get(i).asDouble()));
+				day.put("precip",  precipArr.get(i).asInt());
+				day.put("emoji",   weatherEmoji(code));
+				day.put("desc",    weatherDesc(code));
+				result.add(day);
+			}
+
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 3600);
+			return result;
+
+		} catch (Exception e) {
+			log.warn("주간 날씨 실패: {}", e.getMessage());
+			return new ArrayList<>();
+		}
+	}
+
+	private String weatherEmoji(int code) {
+		if (code == 0)          return "☀️";
+		if (code <= 2)          return "🌤️";
+		if (code == 3)          return "☁️";
+		if (code <= 48)         return "🌫️";
+		if (code <= 57)         return "🌦️";
+		if (code <= 67)         return "🌧️";
+		if (code <= 77)         return "❄️";
+		if (code <= 82)         return "🌦️";
+		if (code <= 86)         return "🌨️";
+		return "⛈️";
+	}
+
+	private String weatherDesc(int code) {
+		if (code == 0)          return "맑음";
+		if (code <= 2)          return "구름조금";
+		if (code == 3)          return "흐림";
+		if (code <= 48)         return "안개";
+		if (code <= 57)         return "이슬비";
+		if (code <= 67)         return "비";
+		if (code <= 77)         return "눈";
+		if (code <= 82)         return "소나기";
+		if (code <= 86)         return "눈소나기";
+		return "뇌우";
+	}
+
+	public Map<String, Object> getNasdaqIndex() {
+		String cacheKey = "cache:nasdaq_index";
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> result = new HashMap<>();
+
+		try {
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+
+			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JSONObject responseJson = new JSONObject(sb.toString());
+			JSONObject meta = responseJson.getJSONObject("chart")
+					.getJSONArray("result")
+					.getJSONObject(0)
+					.getJSONObject("meta");
+
+			double cur = meta.getDouble("regularMarketPrice");
+			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
+			double diff = cur - pre;
+
+			result.put("price", String.format("%.2f", cur));
+			result.put("change", String.format("%.2f", Math.abs(diff)));
+			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
+			result.put("isUp", diff >= 0);
+
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+
+		} catch (Exception e) {
+			result.put("price", "0.00");
+			result.put("change", "0.00");
+			result.put("percent", "0.00%");
+			result.put("isUp", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	public Map<String, Object> getDowJonesIndex() {
+		String cacheKey = "cache:dowjones_index";
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> result = new HashMap<>();
+
+		try {
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+
+			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/%5EDJI?interval=1d");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JSONObject responseJson = new JSONObject(sb.toString());
+			JSONObject meta = responseJson.getJSONObject("chart")
+					.getJSONArray("result")
+					.getJSONObject(0)
+					.getJSONObject("meta");
+
+			double cur = meta.getDouble("regularMarketPrice");
+			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
+			double diff = cur - pre;
+
+			result.put("price", String.format("%.2f", cur));
+			result.put("change", String.format("%.2f", Math.abs(diff)));
+			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
+			result.put("isUp", diff >= 0);
+
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+
+		} catch (Exception e) {
+			result.put("price", "0.00");
+			result.put("change", "0.00");
+			result.put("percent", "0.00%");
+			result.put("isUp", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	public Map<String, Object> getBitcoinPrice() {
+		String cacheKey = "cache:bitcoin_price";
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> result = new HashMap<>();
+
+		try {
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+
+			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JSONObject responseJson = new JSONObject(sb.toString());
+			JSONObject meta = responseJson.getJSONObject("chart")
+					.getJSONArray("result")
+					.getJSONObject(0)
+					.getJSONObject("meta");
+
+			double cur = meta.getDouble("regularMarketPrice");
+			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
+			double diff = cur - pre;
+
+			result.put("price", String.format("%.0f", cur));
+			result.put("change", String.format("%.0f", Math.abs(diff)));
+			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
+			result.put("isUp", diff >= 0);
+
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+
+		} catch (Exception e) {
+			result.put("price", "0");
+			result.put("change", "0");
+			result.put("percent", "0.00%");
+			result.put("isUp", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
+	public Map<String, Object> getKospiIndex() {
+		String cacheKey = "cache:kospi_index";
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> result = new HashMap<>();
+
+		try {
+			// 캐시 확인
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, Map.class);
+			}
+
+			URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?interval=1d");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JSONObject responseJson = new JSONObject(sb.toString());
+			JSONObject meta = responseJson.getJSONObject("chart")
+					.getJSONArray("result")
+					.getJSONObject(0)
+					.getJSONObject("meta");
+
+			double cur = meta.getDouble("regularMarketPrice");
+			double pre = meta.optDouble("previousClose", meta.optDouble("chartPreviousClose", cur));
+			double diff = cur - pre;
+
+			result.put("price", String.format("%.2f", cur));
+			result.put("change", String.format("%.2f", Math.abs(diff)));
+			result.put("percent", String.format("%.2f%%", Math.abs((diff / pre) * 100)));
+			result.put("isUp", diff >= 0);
+
+			commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 60);
+
+		} catch (Exception e) {
+			result.put("price", "0.00");
+			result.put("change", "0.00");
+			result.put("percent", "0.00%");
+			result.put("isUp", false);
+			result.put("error", e.getMessage());
+		}
+		return result;
+	}
+
 	public Map<String, Object> getVixIndex() {
 		String cacheKey = "cache:vix_index";
 		ObjectMapper mapper = new ObjectMapper();

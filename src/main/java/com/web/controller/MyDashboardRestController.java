@@ -101,6 +101,66 @@ public class MyDashboardRestController {
 		}
 	}
 
+	@GetMapping("/getWeeklyWeather")
+	public ResponseEntity<?> getWeeklyWeather() {
+		try {
+			List<Map<String, Object>> result = myDashboardService.getWeeklyWeather();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getNasdaqIndex")
+	public ResponseEntity<Map<String, Object>> getNasdaqIndex() {
+		try {
+			Map<String, Object> result = myDashboardService.getNasdaqIndex();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getDowJonesIndex")
+	public ResponseEntity<Map<String, Object>> getDowJonesIndex() {
+		try {
+			Map<String, Object> result = myDashboardService.getDowJonesIndex();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getBitcoinPrice")
+	public ResponseEntity<Map<String, Object>> getBitcoinPrice() {
+		try {
+			Map<String, Object> result = myDashboardService.getBitcoinPrice();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
+	@GetMapping("/getKospiIndex")
+	public ResponseEntity<Map<String, Object>> getKospiIndex() {
+		try {
+			Map<String, Object> result = myDashboardService.getKospiIndex();
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
 	@GetMapping("/getVixIndex")
 	public ResponseEntity<Map<String, Object>> getVixIndex() {
 		try {
