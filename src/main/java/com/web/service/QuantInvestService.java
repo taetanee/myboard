@@ -34,7 +34,7 @@ public class QuantInvestService {
     private static final String KEY_MOMENTUM_LIST = "quantInvest:momentum:list";
     private static final String KEY_SMALLCAP_LIST = "quantInvest:smallcap:list";
     private static final String KEY_META          = "quantInvest:meta";
-    private static final int    CACHE_TTL         = 6 * 60 * 60; // 6시간
+    private static final int    CACHE_TTL         = 25 * 60 * 60; // 25시간 (매일 갱신 스케줄 커버)
 
     private static final String UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
