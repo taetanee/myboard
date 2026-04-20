@@ -62,7 +62,7 @@ public class MyDashboardService {
 
 		//[시작] 캐시 확인
 		String cachedData = commonUtil.getCache(cacheKey);
-		if (cachedData != null) {
+		if (cachedData != null && !cachedData.contains("-999")) {
 			return mapper.readValue(cachedData, Map.class);
 		}
 		//[종료] 캐시 확인
