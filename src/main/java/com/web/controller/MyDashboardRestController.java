@@ -185,6 +185,20 @@ public class MyDashboardRestController {
 		}
 	}
 
+	@GetMapping("/getStockHistory")
+	public ResponseEntity<?> getStockHistory(
+			@RequestParam String ticker,
+			@RequestParam(defaultValue = "1y") String range) {
+		try {
+			List<Map<String, Object>> result = myDashboardService.getStockHistory(ticker, range);
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
 	@PostMapping("/savePreferences")
 	public ResponseEntity<Map<String, Object>> savePreferences(@RequestBody Map<String, Object> param) {
 		try {

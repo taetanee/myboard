@@ -942,6 +942,74 @@ public class MyDashboardService {
 		return result;
 	}
 
+	public List<Map<String, Object>> getStockHistory(String ticker, String range) throws Exception {
+		String cacheKey = "cache:stock_history_" + ticker.toLowerCase().replaceAll("[^a-z0-9]", "_") + "_" + range;
+		ObjectMapper mapper = new ObjectMapper();
+
+		// [시작] 캐시 확인
+		String cachedData = commonUtil.getCache(cacheKey);
+		if (cachedData != null) {
+			return mapper.readValue(cachedData, List.class);
+		}
+		// [종료] 캐시 확인
+
+		// [시작] Yahoo Finance API 요청
+		String encodedTicker = URLEncoder.encode(ticker, "UTF-8");
+		URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/"
+				+ encodedTicker + "?interval=1d&range=" + range + "&includePrePost=false");
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+		conn.setConnectTimeout(10000);
+		conn.setReadTimeout(10000);
+
+		if (conn.getResponseCode() != 200) {
+			throw new Exception("Yahoo Finance 응답 오류 (HTTP " + conn.getResponseCode() + ")");
+		}
+
+		BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		StringBuilder sb = new StringBuilder();
+		String line;
+		while ((line = rd.readLine()) != null) sb.append(line);
+		rd.close();
+		conn.disconnect();
+		// [종료] Yahoo Finance API 요청
+
+		// [시작] JSON 파싱
+		JSONObject responseJson = new JSONObject(sb.toString());
+		JSONObject result0 = responseJson.getJSONObject("chart")
+				.getJSONArray("result")
+				.getJSONObject(0);
+
+		JSONArray timestamps = result0.getJSONArray("timestamp");
+		JSONArray closes = result0.getJSONObject("indicators")
+				.getJSONArray("quote")
+				.getJSONObject(0)
+				.getJSONArray("close");
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+		List<Map<String, Object>> result = new ArrayList<>();
+		for (int i = 0; i < timestamps.length(); i++) {
+			if (closes.isNull(i)) continue;
+			double close = closes.getDouble(i);
+			long ts = timestamps.getLong(i);
+
+			Map<String, Object> entry = new HashMap<>();
+			entry.put("date", sdf.format(new java.util.Date(ts * 1000L)));
+			entry.put("close", Math.round(close * 100.0) / 100.0);
+			result.add(entry);
+		}
+		// [종료] JSON 파싱
+
+		// [시작] 캐시 저장 (1시간)
+		commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 3600);
+		// [종료] 캐시 저장
+
+		return result;
+	}
+
 	public Map<String, Object> getVixIndex() {
 		String cacheKey = "cache:vix_index";
 		ObjectMapper mapper = new ObjectMapper();

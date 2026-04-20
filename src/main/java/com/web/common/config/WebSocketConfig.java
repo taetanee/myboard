@@ -17,6 +17,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(clipboardWebSocketHandler, "/ws/clipboard")
-                .setAllowedOrigins("https://mypad.kr", "http://localhost:3000", "http://124.53.139.229:3000");
+                .setAllowedOrigins("https://mypad.kr", "http://124.53.139.229:3000");
     }
 }
