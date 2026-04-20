@@ -943,6 +943,16 @@ public class MyDashboardService {
 	}
 
 	public List<Map<String, Object>> getStockHistory(String ticker, String range) throws Exception {
+		// [시작] range별 interval 및 캐시 TTL 결정
+		String interval;
+		int cacheTtl;
+		switch (range) {
+			case "1d": interval = "5m";  cacheTtl = 60;   break; // 5분봉, 1분 캐시
+			case "5d": interval = "15m"; cacheTtl = 300;  break; // 15분봉, 5분 캐시
+			default:   interval = "1d";  cacheTtl = 3600; break; // 일봉, 1시간 캐시
+		}
+		// [종료] range별 interval 및 캐시 TTL 결정
+
 		String cacheKey = "cache:stock_history_" + ticker.toLowerCase().replaceAll("[^a-z0-9]", "_") + "_" + range;
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -956,7 +966,7 @@ public class MyDashboardService {
 		// [시작] Yahoo Finance API 요청
 		String encodedTicker = URLEncoder.encode(ticker, "UTF-8");
 		URL url = new URL("https://query1.finance.yahoo.com/v8/finance/chart/"
-				+ encodedTicker + "?interval=1d&range=" + range + "&includePrePost=false");
+				+ encodedTicker + "?interval=" + interval + "&range=" + range + "&includePrePost=false");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
@@ -987,8 +997,12 @@ public class MyDashboardService {
 				.getJSONObject(0)
 				.getJSONArray("close");
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+		// 1D/5D는 시간 포함, 그 외는 날짜만
+		boolean includeTime = "5m".equals(interval) || "15m".equals(interval);
+		SimpleDateFormat sdf = includeTime
+				? new SimpleDateFormat("HH:mm")
+				: new SimpleDateFormat("yyyy-MM-dd");
+		sdf.setTimeZone(java.util.TimeZone.getTimeZone("America/New_York"));
 
 		List<Map<String, Object>> result = new ArrayList<>();
 		for (int i = 0; i < timestamps.length(); i++) {
@@ -1003,8 +1017,8 @@ public class MyDashboardService {
 		}
 		// [종료] JSON 파싱
 
-		// [시작] 캐시 저장 (1시간)
-		commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 3600);
+		// [시작] 캐시 저장
+		commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), cacheTtl);
 		// [종료] 캐시 저장
 
 		return result;
