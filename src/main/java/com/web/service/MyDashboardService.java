@@ -435,6 +435,70 @@ public class MyDashboardService {
 		return result;
 	}
 
+	public List<Map<String, Object>> getFearAndGreedHistory(String range) {
+		String cacheKey = "cache:fear_greed_history_" + range;
+		ObjectMapper mapper = new ObjectMapper();
+
+		try {
+			String cachedData = commonUtil.getCache(cacheKey);
+			if (cachedData != null) {
+				return mapper.readValue(cachedData, List.class);
+			}
+
+			URL url = new URL("https://production.dataviz.cnn.io/index/fearandgreed/graphdata");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			conn.setRequestProperty("Accept", "application/json");
+			conn.setRequestProperty("Referer", "https://www.cnn.com/markets/fear-and-greed");
+			conn.setRequestProperty("Origin", "https://www.cnn.com");
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(5000);
+
+			if (conn.getResponseCode() != 200) throw new Exception("CNN 차단됨");
+
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) sb.append(line);
+			rd.close();
+
+			JSONArray data = new JSONObject(sb.toString())
+					.getJSONObject("fear_and_greed_historical")
+					.getJSONArray("data");
+
+			long now = System.currentTimeMillis();
+			long cutoff;
+			switch (range) {
+				case "1d":  cutoff = now - 7L  * 86400000; break;
+				case "5d":  cutoff = now - 14L * 86400000; break;
+				case "1mo": cutoff = now - 30L * 86400000; break;
+				default:    cutoff = now - 180L * 86400000;
+			}
+
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			List<Map<String, Object>> result = new ArrayList<>();
+			for (int i = 0; i < data.length(); i++) {
+				JSONObject item = data.getJSONObject(i);
+				long ts = item.getLong("x");
+				if (ts < cutoff) continue;
+				Map<String, Object> entry = new HashMap<>();
+				entry.put("date", sdf.format(new java.util.Date(ts)));
+				entry.put("close", item.getDouble("y"));
+				result.add(entry);
+			}
+
+			if (!result.isEmpty()) {
+				commonUtil.setCache(cacheKey, mapper.writeValueAsString(result), 3600);
+				return result;
+			}
+
+		} catch (Exception e) {
+			log.warn("공포탐욕 히스토리 실패: {}", e.getMessage());
+		}
+		return new ArrayList<>();
+	}
+
 	public List<Map<String, String>> searchStock(String query) throws Exception {
 		// 한글 포함 여부에 따라 검색 소스 분기
 		boolean isKorean = query.matches(".*[가-힣].*");

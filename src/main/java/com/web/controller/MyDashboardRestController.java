@@ -77,6 +77,18 @@ public class MyDashboardRestController {
 		}
 	}
 
+	@GetMapping("/getFearAndGreedHistory")
+	public ResponseEntity<?> getFearAndGreedHistory(@RequestParam(defaultValue = "1mo") String range) {
+		try {
+			List<Map<String, Object>> result = myDashboardService.getFearAndGreedHistory(range);
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+		}
+	}
+
 	@GetMapping("/searchStock")
 	public ResponseEntity<?> searchStock(@RequestParam String query) {
 		try {
