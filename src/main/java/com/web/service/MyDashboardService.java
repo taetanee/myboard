@@ -703,14 +703,19 @@ public class MyDashboardService {
 		Map<String, Object> defaults = new HashMap<>();
 		defaults.put("bookmarks", new ArrayList<>(Arrays.asList("weather", "dust", "snp500", "exchange", "feargreed", "vix")));
 		defaults.put("customStocks", new ArrayList<>());
+		defaults.put("maTickers", new ArrayList<>());
 		return defaults;
 	}
 
 	public void saveDashboardPreferences(String randomWord, Map<String, Object> prefs) throws Exception {
 		String key = "dashboard:pref:" + randomWord;
-		Map<String, Object> toSave = new HashMap<>();
-		toSave.put("bookmarks", prefs.get("bookmarks"));
-		toSave.put("customStocks", prefs.get("customStocks"));
+		String existing = redisUtil.getValues(key);
+		Map<String, Object> toSave = (existing != null && !existing.isEmpty())
+				? objectMapper.readValue(existing, Map.class)
+				: new HashMap<>();
+		if (prefs.get("bookmarks") != null)   toSave.put("bookmarks",   prefs.get("bookmarks"));
+		if (prefs.get("customStocks") != null) toSave.put("customStocks", prefs.get("customStocks"));
+		if (prefs.get("maTickers") != null)    toSave.put("maTickers",    prefs.get("maTickers"));
 		redisUtil.setValues(key, objectMapper.writeValueAsString(toSave));
 	}
 
