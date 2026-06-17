@@ -8,8 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Api(tags = "퀀트 투자 컨트롤러")
 @RestController
@@ -107,6 +111,33 @@ public class QuantInvestRestController {
     @GetMapping("/getStatus")
     public ResponseEntity<?> getStatus() {
         return ResponseEntity.ok(quantInvestService.getStatus());
+    }
+
+    /** 종목 검색 (한글/영문 자동완성) */
+    @GetMapping("/searchStock")
+    public ResponseEntity<?> searchStock(@RequestParam String q) {
+        try {
+            if (q == null || q.trim().isEmpty())
+                return ResponseEntity.ok(Collections.emptyList());
+            return ResponseEntity.ok(quantInvestService.searchStock(q.trim()));
+        } catch (Exception e) {
+            return error(e);
+        }
+    }
+
+    /** 개별 종목 정보 조회 (비교 분석용, 최대 6종목) */
+    @GetMapping("/getStockDetails")
+    public ResponseEntity<?> getStockDetails(@RequestParam String symbols) {
+        try {
+            List<String> symbolList = Arrays.stream(symbols.split(","))
+                    .map(String::trim).filter(s -> !s.isEmpty())
+                    .distinct().limit(6).collect(Collectors.toList());
+            if (symbolList.isEmpty())
+                return ResponseEntity.badRequest().body(Collections.singletonMap("error", "symbols 파라미터가 필요합니다"));
+            return ResponseEntity.ok(quantInvestService.getStockDetails(symbolList));
+        } catch (Exception e) {
+            return error(e);
+        }
     }
 
     /** 데이터 수집 즉시 실행 (수동 갱신) */

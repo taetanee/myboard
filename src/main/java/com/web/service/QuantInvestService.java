@@ -6,6 +6,7 @@ import com.web.common.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -170,6 +171,10 @@ public class QuantInvestService {
     //  개별 종목 펀더멘털
     // ─────────────────────────────────────────────
     private Map<String, Object> fetchFundamentals(String ticker) throws Exception {
+        return fetchFundamentals(ticker, true);
+    }
+
+    private Map<String, Object> fetchFundamentals(String ticker, boolean strict) throws Exception {
         String encoded    = URLEncoder.encode(ticker, "UTF-8");
         String crumbParam = URLEncoder.encode(cachedCrumb, "UTF-8");
         String modules = "summaryDetail%2CdefaultKeyStatistics%2Cprice"
@@ -188,7 +193,7 @@ public class QuantInvestService {
             cachedCrumb = null;
             refreshCrumbIfNeeded();
             conn.disconnect();
-            return fetchFundamentals(ticker);
+            return fetchFundamentals(ticker, strict);
         }
         if (code != 200) throw new Exception("HTTP " + code + " for " + ticker);
 
@@ -208,8 +213,16 @@ public class QuantInvestService {
 
         if (sd == null || dks == null) return null;
 
-        double pe = extractRaw(sd,  "trailingPE");
+        double pe = extractRaw(sd, "trailingPE");
+        if (pe <= 0) pe = extractRaw(sd, "forwardPE");
+
         double pb = extractRaw(dks, "priceToBook");
+        if (pb <= 0) {
+            double bookValue = extractRaw(dks, "bookValue");
+            double rawPrice  = price != null ? extractRaw(price, "regularMarketPrice") : 0;
+            if (bookValue > 0 && rawPrice > 0) pb = round2(rawPrice / bookValue);
+        }
+
         double mcap = extractRaw(sd, "marketCap");
 
         double currentPrice = price != null ? extractRaw(price, "regularMarketPrice") : 0;
@@ -231,7 +244,11 @@ public class QuantInvestService {
         double fiftyTwoWeekChange = extractRaw(dks, "52WeekChange") * 100.0;
         double revenueGrowth      = fd != null ? extractRaw(fd, "revenueGrowth") * 100.0 : 0;
 
-        if (pb <= 0 && pe <= 0) return null;
+        String currency     = price != null ? price.optString("currency", "USD") : "USD";
+        String exchangeName = price != null ? price.optString("exchangeName", "") : "";
+
+        if (currentPrice <= 0) return null;
+        if (strict && pb <= 0 && pe <= 0) return null;
 
         Map<String, Object> stock = new LinkedHashMap<>();
         stock.put("symbol",             ticker);
@@ -245,6 +262,8 @@ public class QuantInvestService {
         stock.put("fiftyTwoWeekChange", round2(fiftyTwoWeekChange));
         stock.put("revenueGrowth",      round2(revenueGrowth));
         stock.put("marketCap",          (long) mcap);
+        stock.put("currency",           currency);
+        stock.put("exchange",           exchangeName);
         return stock;
     }
 
@@ -418,8 +437,351 @@ public class QuantInvestService {
     }
 
     // ─────────────────────────────────────────────
+    //  종목 검색 — 6자리 코드: Naver / 그 외: Yahoo Finance
+    // ─────────────────────────────────────────────
+    public List<Map<String, Object>> searchStock(String q) throws Exception {
+        if (q.matches("\\d{6}")) {
+            List<Map<String, Object>> r = searchNaverByCode(q);
+            if (!r.isEmpty()) return r;
+        }
+        return searchStockYahoo(q);
+    }
+
+    /** 6자리 종목코드로 Naver 모바일 basic API에서 종목명·거래소 조회 */
+    private List<Map<String, Object>> searchNaverByCode(String code) {
+        try {
+            Map<String, Object> basic = fetchNaverBasic(code);
+            if (basic == null) return Collections.emptyList();
+            Map<String, Object> r = new LinkedHashMap<>();
+            r.put("symbol",   basic.get("symbol"));
+            r.put("name",     basic.get("name"));
+            r.put("exchange", basic.get("exchange"));
+            r.put("type",     "Equity");
+            return Collections.singletonList(r);
+        } catch (Exception e) {
+            log.warn("[QuantInvest] Naver code lookup 실패 {}: {}", code, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    private List<Map<String, Object>> searchStockYahoo(String q) throws Exception {
+        String encoded = URLEncoder.encode(q.trim(), "UTF-8");
+        String urlStr  = "https://query1.finance.yahoo.com/v1/finance/search?q=" + encoded
+                + "&quotesCount=10&newsCount=0&enableFuzzyQuery=false&quotesQueryId=tss_match_phrase_query";
+        HttpURLConnection conn = openConn(urlStr);
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("Referer", "https://finance.yahoo.com/");
+        int httpCode = conn.getResponseCode();
+        if (httpCode != 200) throw new Exception("Yahoo search HTTP " + httpCode);
+        String body = readBody(conn);
+        conn.disconnect();
+
+        JSONArray quotes = new JSONObject(body).optJSONArray("quotes");
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (quotes != null) {
+            for (int i = 0; i < quotes.length(); i++) {
+                JSONObject item    = quotes.getJSONObject(i);
+                String typeDisp    = item.optString("typeDisp", "");
+                String symbol      = item.optString("symbol", "");
+                if (symbol.isEmpty()) continue;
+                if (!"Equity".equals(typeDisp) && !"ETF".equals(typeDisp)) continue;
+                String longname  = item.optString("longname", "");
+                String shortname = item.optString("shortname", "");
+                Map<String, Object> r = new LinkedHashMap<>();
+                r.put("symbol",   symbol);
+                r.put("name",     !longname.isEmpty() ? longname : shortname);
+                r.put("exchange", item.optString("exchDisp", item.optString("exchange", "")));
+                r.put("type",     typeDisp);
+                result.add(r);
+            }
+        }
+        return result;
+    }
+
+    // ─────────────────────────────────────────────
+    //  개별 종목 조회 — 한국: Naver Finance / 해외: Yahoo Finance
+    // ─────────────────────────────────────────────
+    public List<Map<String, Object>> getStockDetails(List<String> symbols) throws Exception {
+        refreshCrumbIfNeeded(); // 한국 주식도 Yahoo fallback을 위해 항상 준비
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < symbols.size(); i++) {
+            String symbol = symbols.get(i).trim().toUpperCase();
+            if (symbol.isEmpty()) continue;
+            try {
+                Map<String, Object> stock;
+                if (isKoreanSymbol(symbol)) {
+                    // 1차: Naver Finance (price + PER/PBR/EPS/BPS/배당)
+                    stock = fetchNaverFundamentals(toNaverCode(symbol));
+                    // 2차: 핵심 지표(PER/PBR) 누락 시 Yahoo Finance로 보완
+                    if (stock == null || (dbl(stock, "pe") <= 0 && dbl(stock, "pb") <= 0)) {
+                        log.info("[QuantInvest] {} Naver 데이터 불충분 → Yahoo Finance fallback", symbol);
+                        Map<String, Object> yahoo = null;
+                        try { yahoo = fetchFundamentals(symbol, false); } catch (Exception ignored) {}
+                        if (stock == null) {
+                            stock = yahoo;
+                        } else if (yahoo != null) {
+                            if (dbl(stock, "pe")  <= 0 && dbl(yahoo, "pe")  > 0) stock.put("pe",  yahoo.get("pe"));
+                            if (dbl(stock, "pb")  <= 0 && dbl(yahoo, "pb")  > 0) stock.put("pb",  yahoo.get("pb"));
+                            if (dbl(stock, "roe") == 0 && dbl(yahoo, "roe") != 0) stock.put("roe", yahoo.get("roe"));
+                            if (dbl(stock, "fiftyTwoWeekChange") == 0)            stock.put("fiftyTwoWeekChange", yahoo.get("fiftyTwoWeekChange"));
+                            if (dbl(stock, "revenueGrowth")      == 0)            stock.put("revenueGrowth",      yahoo.get("revenueGrowth"));
+                        }
+                    }
+                } else {
+                    stock = fetchFundamentals(symbol, false);
+                }
+
+                if (stock != null) {
+                    result.add(stock);
+                } else {
+                    Map<String, Object> err = new LinkedHashMap<>();
+                    err.put("symbol", symbol); err.put("error", "데이터를 찾을 수 없습니다");
+                    result.add(err);
+                }
+            } catch (Exception e) {
+                log.warn("[QuantInvest] getStockDetails {} 실패: {}", symbol, e.getMessage());
+                Map<String, Object> err = new LinkedHashMap<>();
+                err.put("symbol", symbol); err.put("error", e.getMessage());
+                result.add(err);
+            }
+            if (i < symbols.size() - 1) Thread.sleep(300);
+        }
+        return result;
+    }
+
+    // ─────────────────────────────────────────────
+    //  Naver Finance — 한국주식 펀더멘털
+    // ─────────────────────────────────────────────
+    private static final String NAVER_API = "https://m.stock.naver.com/api/stock";
+
+    private boolean isKoreanSymbol(String s) {
+        return s.matches("\\d{6}(\\.K[SQ])?$");
+    }
+
+    private String toNaverCode(String s) {
+        return s.replaceAll("\\.K[SQ]$", "");
+    }
+
+    private HttpURLConnection openNaverConn(String urlStr) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("User-Agent", UA);
+        conn.setRequestProperty("Referer", "https://m.stock.naver.com/");
+        conn.setRequestProperty("Accept", "application/json, text/plain, */*");
+        conn.setConnectTimeout(8000);
+        conn.setReadTimeout(8000);
+        return conn;
+    }
+
+    private double parseDoubleStr(String s) {
+        if (s == null || s.isEmpty() || "-".equals(s) || "N/A".equals(s)) return 0;
+        try { return Double.parseDouble(s.replace(",", "").replace("%", "").trim()); }
+        catch (NumberFormatException e) { return 0; }
+    }
+
+    private long parseLongStr(String s) {
+        if (s == null || s.isEmpty() || "-".equals(s)) return 0L;
+        try { return Long.parseLong(s.replace(",", "").trim()); }
+        catch (NumberFormatException e) { return 0L; }
+    }
+
+    private Map<String, Object> fetchNaverFundamentals(String code) throws Exception {
+        Map<String, Object> stock = fetchNaverBasic(code);
+        if (stock == null) return null;
+        enrichNaverInformation(code, stock);   // HTML 스크래핑: PER, PBR, EPS, BPS, 배당
+        try { enrichNaverFinance(code, stock); }
+        catch (Exception e) { log.debug("[QuantInvest] Naver finance 실패 {}: {}", code, e.getMessage()); }
+        return stock;
+    }
+
+    private Map<String, Object> fetchNaverBasic(String code) throws Exception {
+        HttpURLConnection conn = openNaverConn(NAVER_API + "/" + code + "/basic");
+        int httpCode = conn.getResponseCode();
+        if (httpCode != 200) { conn.disconnect(); throw new Exception("Naver basic HTTP " + httpCode + " for " + code); }
+        String body = readBody(conn);
+        conn.disconnect();
+
+        JSONObject j = new JSONObject(body);
+
+        double price = parseDoubleStr(j.optString("closePrice", "0"));
+        if (price <= 0) return null;
+
+        double pe  = parseDoubleStr(j.optString("per", "0"));
+        double pb  = parseDoubleStr(j.optString("pbr", "0"));
+        double bps = parseDoubleStr(j.optString("bps", "0"));
+        if (pb <= 0 && bps > 0) pb = round2(price / bps);
+
+        long   mcap = parseLongStr(j.optString("marketValue", "0"));
+        String name = j.optString("stockName", code);
+
+        JSONObject et   = j.optJSONObject("stockExchangeType");
+        String exchCode = et != null ? et.optString("code", "") : "";
+        String exchName = et != null ? et.optString("name", "") : "";
+        String symbol   = code + ("KOE".equals(exchCode) ? ".KQ" : ".KS");
+
+        Map<String, Object> stock = new LinkedHashMap<>();
+        stock.put("symbol",             symbol);
+        stock.put("name",               name);
+        stock.put("sector",             "");
+        stock.put("price",              round2(price));
+        stock.put("pe",                 round2(pe));
+        stock.put("pb",                 round2(pb));
+        stock.put("roe",                0.0);
+        stock.put("gpa",                0.0);
+        stock.put("fiftyTwoWeekChange", 0.0);
+        stock.put("revenueGrowth",      0.0);
+        stock.put("eps",                0.0);
+        stock.put("bps",                0.0);
+        stock.put("divYield",           0.0);
+        stock.put("divPerShare",        0.0);
+        stock.put("marketCap",          mcap);
+        stock.put("currency",           "KRW");
+        stock.put("exchange",           exchName);
+        return stock;
+    }
+
+    /** Naver Finance /finance 에서 ROE, 매출성장률 보완 */
+    private void enrichNaverFinance(String code, Map<String, Object> stock) throws Exception {
+        HttpURLConnection conn = openNaverConn(NAVER_API + "/" + code + "/finance");
+        if (conn.getResponseCode() != 200) { conn.disconnect(); return; }
+        String body = readBody(conn);
+        conn.disconnect();
+
+        JSONObject root = new JSONObject(body);
+        double roe = 0, revGrowth = 0;
+
+        // 구조 1: stockFinanceSummary
+        JSONObject summary = root.optJSONObject("stockFinanceSummary");
+        if (summary != null) {
+            JSONArray prof = summary.optJSONArray("profitabilityList");
+            if (prof != null && prof.length() > 0) {
+                JSONObject latest = prof.getJSONObject(prof.length() - 1);
+                roe = parseDoubleStr(latest.optString("roe", "0"));
+            }
+            JSONArray growth = summary.optJSONArray("growthList");
+            if (growth != null && growth.length() > 0) {
+                JSONObject latest = growth.getJSONObject(growth.length() - 1);
+                revGrowth = parseDoubleStr(latest.optString("revenue", "0"));
+            }
+        }
+
+        // 구조 2: 연간 테이블 형태 (annualFinancialRatioList)
+        if (roe == 0) {
+            JSONArray ratioList = root.optJSONArray("annualFinancialRatioList");
+            if (ratioList != null) {
+                for (int i = 0; i < ratioList.length(); i++) {
+                    JSONObject section = ratioList.getJSONObject(i);
+                    JSONArray items = section.optJSONArray("financeItemList");
+                    if (items == null) continue;
+                    for (int j = 0; j < items.length(); j++) {
+                        JSONObject item = items.getJSONObject(j);
+                        String itemName = item.optString("name", "");
+                        if (itemName.contains("ROE")) {
+                            JSONArray vals = item.optJSONArray("value");
+                            if (vals != null && vals.length() > 0)
+                                roe = parseDoubleStr(vals.getString(vals.length() - 1));
+                        }
+                        if (itemName.contains("매출액증가율") || itemName.contains("매출성장")) {
+                            JSONArray vals = item.optJSONArray("value");
+                            if (vals != null && vals.length() > 0)
+                                revGrowth = parseDoubleStr(vals.getString(vals.length() - 1));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (roe != 0)      stock.put("roe",            round2(roe));
+        if (revGrowth != 0) stock.put("revenueGrowth", round2(revGrowth));
+    }
+
+    /**
+     * finance.naver.com/item/information.naver 스크래핑 — PER, PBR, EPS, BPS, 배당수익률, 주당배당금
+     * execute() 로 raw bytes를 받아 EUC-KR로 명시 파싱 → 한글 레이블 깨짐 방지
+     */
+    private void enrichNaverInformation(String code, Map<String, Object> stock) {
+        try {
+            String url = "https://finance.naver.com/item/main.naver?code=" + code;
+            Connection.Response resp = Jsoup.connect(url)
+                    .userAgent(UA)
+                    .header("Referer", "https://finance.naver.com/")
+                    .header("Accept-Language", "ko-KR,ko;q=0.9")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .timeout(10000)
+                    .ignoreContentType(true)
+                    .execute();
+
+            // 네이버 증권 페이지는 EUC-KR → 명시적 파싱으로 한글 레이블 보장
+            Document doc = Jsoup.parse(new String(resp.bodyAsBytes(), "EUC-KR"), url);
+            Map<String, String> data = extractTableData(doc);
+
+            applyDouble(stock, "pe",          data, "PER",       "배");
+            applyDouble(stock, "pb",          data, "PBR",       "배");
+            applyDouble(stock, "eps",         data, "EPS",       "원");
+            applyDouble(stock, "bps",         data, "BPS",       "원");
+            applyDouble(stock, "divYield",    data, "배당수익률", "%");
+            applyDouble(stock, "divPerShare", data, "주당배당금", "원");
+
+            // 시가총액 보완 (단위: 억원)
+            String mcapRaw = data.getOrDefault("시가총액", "");
+            if (!mcapRaw.isEmpty()) {
+                long mc억 = parseLongStr(mcapRaw.replace("억", "").replace(",", "").trim());
+                if (mc억 > 0 && ((Number) stock.getOrDefault("marketCap", 0L)).longValue() == 0L)
+                    stock.put("marketCap", mc억 * 100_000_000L);
+            }
+
+            log.info("[QuantInvest] information.naver {} → PER={} PBR={} EPS={} BPS={} divYield={}",
+                    code, stock.get("pe"), stock.get("pb"), stock.get("eps"),
+                    stock.get("bps"), stock.get("divYield"));
+
+        } catch (Exception e) {
+            log.warn("[QuantInvest] information.naver 스크래핑 실패 {}: {}", code, e.getMessage());
+        }
+    }
+
+    /** 모든 테이블의 th→td 쌍을 label→value 맵으로 수집 */
+    private Map<String, String> extractTableData(Document doc) {
+        Map<String, String> data = new LinkedHashMap<>();
+        for (Element row : doc.select("table tr")) {
+            Elements ths = row.select("th");
+            Elements tds = row.select("td");
+            int n = Math.min(ths.size(), tds.size());
+            for (int i = 0; i < n; i++) {
+                String k = ths.get(i).text().trim().replaceAll("[*\\s]+$", "").trim();
+                String v = tds.get(i).text().trim();
+                if (!k.isEmpty() && !v.isEmpty() && !"-".equals(v) && !"N/A".equals(v))
+                    data.put(k, v);
+            }
+        }
+        // dl/dt/dd 구조도 수집 (일부 섹션)
+        for (Element dl : doc.select("dl")) {
+            Elements dts = dl.select("dt");
+            Elements dds = dl.select("dd");
+            int n = Math.min(dts.size(), dds.size());
+            for (int i = 0; i < n; i++) {
+                String k = dts.get(i).text().trim();
+                String v = dds.get(i).text().trim();
+                if (!k.isEmpty() && !v.isEmpty() && !"-".equals(v))
+                    data.putIfAbsent(k, v);
+            }
+        }
+        return data;
+    }
+
+    /** 단위 문자열을 제거한 뒤 숫자로 변환해 stock 맵에 저장 (기존값이 0인 경우만) */
+    private void applyDouble(Map<String, Object> stock, String field,
+                             Map<String, String> data, String label, String unit) {
+        String raw = data.getOrDefault(label, "");
+        if (raw.isEmpty()) return;
+        double v = parseDoubleStr(raw.replace(unit, ""));
+        if (v != 0) stock.put(field, round2(v));
+    }
+
+    // ─────────────────────────────────────────────
     //  페이징 조회 (공통)
     // ─────────────────────────────────────────────
+
     public Map<String, Object> getScreeningList(int page, int size, String sector, String search) throws Exception {
         return pagedResult(KEY_VALUE_LIST, page, size, sector, search);
     }
