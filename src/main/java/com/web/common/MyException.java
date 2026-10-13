@@ -28,6 +28,16 @@ public class MyException extends Exception {
 		switch (Integer.valueOf(errCd)) {
 			case MD_ERR_EXCEPTION:
 				return "Exception 발생";
+			case Const.UNAUTHORIZED_ERROR:
+				return Const.UNAUTHORIZED_ERROR_MSG;
+			case Const.LOGIN_FAILED_ERROR:
+				return Const.LOGIN_FAILED_ERROR_MSG;
+			case Const.DUPLICATE_LOGIN_ID_ERROR:
+				return Const.DUPLICATE_LOGIN_ID_ERROR_MSG;
+			case Const.FORBIDDEN_ADMIN_ERROR:
+				return Const.FORBIDDEN_ADMIN_ERROR_MSG;
+			case Const.NOT_INVALID_PARAM_ERROR:
+				return Const.NOT_INVALID_PARAM_ERROR_MSG;
 		}
 		return "알수없는 에러";
 	}
