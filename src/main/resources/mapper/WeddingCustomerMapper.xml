@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.mapper.WeddingCustomerMapper">
+
+    <resultMap id="customerResultMap" type="com.web.dto.wedding.WeddingCustomerDTO">
+        <id     column="idx"            property="idx" />
+        <result column="login_id"       property="loginId" />
+        <result column="password"       property="password" />
+        <result column="slug"           property="slug" />
+        <result column="customer_name"  property="customerName" />
+        <result column="phone"          property="phone" />
+        <result column="naver_order_no" property="naverOrderNo" />
+        <result column="status"         property="status" />
+        <result column="invite_json"    property="inviteJson" />
+        <result column="video_json"     property="videoJson" />
+        <result column="c_date"         property="cDate" />
+        <result column="u_date"         property="uDate" />
+    </resultMap>
+
+    <select id="findByLoginId" resultMap="customerResultMap">
+        SELECT idx, login_id, password, slug, customer_name, phone, naver_order_no, status, invite_json, video_json, c_date, u_date
+        FROM wedding_customer
+        WHERE login_id = #{loginId}
+          AND del_yn = 'N'
+    </select>
+
+    <select id="findBySlug" resultMap="customerResultMap">
+        SELECT idx, login_id, password, slug, customer_name, phone, naver_order_no, status, invite_json, video_json, c_date, u_date
+        FROM wedding_customer
+        WHERE slug = #{slug}
+          AND del_yn = 'N'
+    </select>
+
+    <select id="findByIdx" resultMap="customerResultMap">
+        SELECT idx, login_id, password, slug, customer_name, phone, naver_order_no, status, invite_json, video_json, c_date, u_date
+        FROM wedding_customer
+        WHERE idx = #{idx}
+          AND del_yn = 'N'
+    </select>
+
+    <select id="existsLoginId" resultType="int">
+        SELECT COUNT(*) FROM wedding_customer WHERE login_id = #{loginId} AND del_yn = 'N'
+    </select>
+
+    <select id="existsSlug" resultType="int">
+        SELECT COUNT(*) FROM wedding_customer WHERE slug = #{slug} AND del_yn = 'N'
+    </select>
+
+    <insert id="insertCustomer" parameterType="com.web.dto.wedding.WeddingCustomerDTO" useGeneratedKeys="true" keyProperty="idx">
+        INSERT INTO wedding_customer
+            (login_id, password, slug, customer_name, phone, naver_order_no, status)
+        VALUES
+            (#{loginId}, #{password}, #{slug}, #{customerName}, #{phone}, #{naverOrderNo}, #{status})
+    </insert>
+
+    <update id="updateInviteJson">
+        UPDATE wedding_customer
+        SET invite_json = #{inviteJson}
+        WHERE idx = #{idx}
+          AND del_yn = 'N'
+    </update>
+
+    <update id="updateVideoJson">
+        UPDATE wedding_customer
+        SET video_json = #{videoJson}
+        WHERE idx = #{idx}
+          AND del_yn = 'N'
+    </update>
+
+</mapper>

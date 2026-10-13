@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.mapper.ProductOrderMapper">
+
+    <resultMap id="orderResultMap" type="com.web.dto.wedding.ProductOrderDTO">
+        <id     column="idx"             property="idx" />
+        <result column="customer_idx"    property="customerIdx" />
+        <result column="product_type"    property="productType" />
+        <result column="sample_code"     property="sampleCode" />
+        <result column="quantity"        property="quantity" />
+        <result column="recipient_name"  property="recipientName" />
+        <result column="recipient_phone" property="recipientPhone" />
+        <result column="shipping_addr"   property="shippingAddr" />
+        <result column="memo"            property="memo" />
+        <result column="status"          property="status" />
+        <result column="c_date"          property="cDate" />
+        <result column="u_date"          property="uDate" />
+    </resultMap>
+
+    <insert id="insertOrder" parameterType="com.web.dto.wedding.ProductOrderDTO" useGeneratedKeys="true" keyProperty="idx">
+        INSERT INTO product_order
+            (customer_idx, product_type, sample_code, quantity, recipient_name, recipient_phone, shipping_addr, memo, status)
+        VALUES
+            (#{customerIdx}, #{productType}, #{sampleCode}, #{quantity}, #{recipientName}, #{recipientPhone}, #{shippingAddr}, #{memo}, #{status})
+    </insert>
+
+    <select id="findByCustomerIdx" resultMap="orderResultMap">
+        SELECT idx, customer_idx, product_type, sample_code, quantity, recipient_name, recipient_phone, shipping_addr, memo, status, c_date, u_date
+        FROM product_order
+        WHERE customer_idx = #{customerIdx}
+          AND del_yn = 'N'
+        ORDER BY idx DESC
+    </select>
+
+    <select id="findAll" resultMap="orderResultMap">
+        SELECT idx, customer_idx, product_type, sample_code, quantity, recipient_name, recipient_phone, shipping_addr, memo, status, c_date, u_date
+        FROM product_order
+        WHERE del_yn = 'N'
+        ORDER BY idx DESC
+    </select>
+
+</mapper>
